@@ -107,4 +107,12 @@ public class RegexVariable extends PostExecutionStepVariable {
     public String getType() {
         return "Regex";
     }
+
+    @Override
+    public StepVariable copy() {
+        RegexVariable copiedVariable = new RegexVariable(this.identifier, this.regexString);
+        copiedVariable.setValue(this.value);
+
+        return copiedVariable;
+    }
 }

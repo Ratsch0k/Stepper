@@ -28,6 +28,8 @@ public abstract class StepVariable {
         this.value = "";
     }
 
+    public abstract StepVariable copy();
+
     public abstract String getType();
 
     public String getIdentifier() {

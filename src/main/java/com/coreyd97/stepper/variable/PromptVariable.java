@@ -41,4 +41,12 @@ public class PromptVariable extends PreExecutionStepVariable {
         this.value = newValue == null ? "" : newValue;
         notifyChanges();
     }
+
+    @Override
+    public StepVariable copy() {
+        PromptVariable copiedVariable = new PromptVariable(this.identifier);
+        copiedVariable.setValue(this.value);
+
+        return copiedVariable;
+    }
 }

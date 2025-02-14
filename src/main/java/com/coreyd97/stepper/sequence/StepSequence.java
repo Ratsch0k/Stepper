@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Vector;
 
 public class StepSequence
@@ -31,17 +32,45 @@ public class StepSequence
     private Vector<Step> steps;
     private final ArrayList<StepListener> stepListeners;
     private final ArrayList<SequenceExecutionListener> sequenceExecutionListeners;
+    private final Optional<StepSequence> originalSequence;
+
+    public StepSequence(String title, ArrayList<StepListener> stepListeners, ArrayList<SequenceExecutionListener> sequenceExecutionListeners, Optional<StepSequence> originalSequence) {
+        this.steps = new Vector<>();
+        this.stepListeners = stepListeners;
+        this.globalVariablesManager = new GlobalVariableManager(this);
+        this.sequenceExecutionListeners = sequenceExecutionListeners;
+        this.title = title;
+        this.originalSequence = originalSequence;
+    }
+
+    public StepSequence(String title, ArrayList<StepListener> stepListeners, ArrayList<SequenceExecutionListener> sequenceExecutionListeners) {
+        this(title, stepListeners, sequenceExecutionListeners, Optional.empty());
+    }
 
     public StepSequence(String title){
-        this.steps = new Vector<>();
-        this.stepListeners = new ArrayList<>();
-        this.globalVariablesManager = new GlobalVariableManager(this);
-        this.sequenceExecutionListeners = new ArrayList<>();
-        this.title = title;
+        this(title, new ArrayList<>(), new ArrayList<>());
     }
 
     public StepSequence(){
         this("Step Sequence");
+    }
+
+    public StepSequence copy() {
+        Stepper.callbacks.printOutput("Copying step sequence");
+        StepSequence copied = new StepSequence(this.title, this.stepListeners, this.sequenceExecutionListeners, Optional.of(this));
+
+        copied.steps = this.steps;
+        copied.globalVariablesManager = new GlobalVariableManager(copied);
+
+        // Make a deep copy of all variable as to not change the original variables
+        for (StepVariable variable : this.globalVariablesManager.getVariables()) {
+            Stepper.callbacks.printOutput("Copying variable: " + variable + "=" + variable.getValue());
+            StepVariable copiedVariable = variable.copy();
+            Stepper.callbacks.printOutput("Copied: " + copiedVariable + "=" + variable.getValue());
+            copied.globalVariablesManager.addVariable(copiedVariable);
+        }
+
+        return copied;
     }
 
     /**
@@ -66,7 +95,7 @@ public class StepSequence
                     }
                 }
 
-                StepSequenceTab tabUI = Stepper.getUI().getTabForStepManager(this);
+                StepSequenceTab tabUI = Stepper.getUI().getTabForStepManager(this.originalSequence.orElse(this));
                 SequenceContainer sequenceContainer = tabUI.getStepsContainer();
 
                 for (SequenceExecutionListener stepListener : this.sequenceExecutionListeners) {
@@ -128,7 +157,7 @@ public class StepSequence
 
     public void addStep(Step step){
         this.steps.add(step);
-        step.setSequence(this);
+        step.setSequence(this.originalSequence.orElse(this));
         for (StepListener stepListener : this.stepListeners) {
             try {
                 stepListener.onStepAdded(step);
@@ -139,11 +168,11 @@ public class StepSequence
     }
 
     public void addStep(){
-        this.addStep(new Step(this));
+        this.addStep(new Step(this.originalSequence.orElse(this)));
     }
 
     public void addStep(IHttpRequestResponse requestResponse) {
-        Step step = new Step(this);
+        Step step = new Step(this.originalSequence.orElse(this));
         step.setRequestBody(requestResponse.getRequest());
         step.setResponseBody(requestResponse.getResponse());
         step.setHttpService(requestResponse.getHttpService());
