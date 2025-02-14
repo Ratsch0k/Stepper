@@ -17,8 +17,10 @@ import com.coreyd97.stepper.variable.StepVariable;
 
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 public class StepSequence
@@ -42,11 +44,28 @@ public class StepSequence
         this("Step Sequence");
     }
 
-    public void executeBlocking(){
+    /**
+     * Execute the step sequence with a predefined list of global variables.
+     * 
+     * Variables are set in the synchronization block which should ensure that if the sequence
+     * has already been executed with another set of variable in between the extraction of the
+     * variables from the header or comment, it is still executed with this set of variables.
+     * @param newGlobalVariables Map of global variables
+     */
+    public void executeBlocking(Map<String, String> newGlobalVariables) {
         if(this.isExecuting) return; //Sequence already being executed.
         this.isExecuting = true;
         try {
             synchronized (StepSequence.this) {
+                // Assign variables to global variables
+                for (StepVariable variable : this.globalVariablesManager.getVariables()) {
+                    if (newGlobalVariables.containsKey(variable.getIdentifier())) {
+                        String newValue = newGlobalVariables.get(variable.getIdentifier());
+
+                        variable.setValue(newValue);
+                    }
+                }
+
                 StepSequenceTab tabUI = Stepper.getUI().getTabForStepManager(this);
                 SequenceContainer sequenceContainer = tabUI.getStepsContainer();
 
@@ -97,6 +116,10 @@ public class StepSequence
         }finally {
             this.isExecuting = false;
         }
+    }
+
+    public void executeBlocking(){
+        this.executeBlocking(new HashMap<>());
     }
 
     public void executeAsync(){

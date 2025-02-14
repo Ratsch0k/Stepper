@@ -31,6 +31,9 @@ public class MessageProcessor implements IHttpListener {
     public static final Pattern EXECUTE_AFTER_HEADER_PATTERN = Pattern.compile("^" + EXECUTE_AFTER_REGEX + "$", Pattern.CASE_INSENSITIVE);
     public static final String STEPPER_IGNORE_HEADER = "X-Stepper-Ignore";
     public static final Pattern STEPPER_IGNORE_PATTERN = Pattern.compile("^"+STEPPER_IGNORE_HEADER, Pattern.CASE_INSENSITIVE);
+    public static final Pattern STEPPER_SEQUENCE_NAME_PATTERN = Pattern.compile("^([^:]+)(?::?)", Pattern.CASE_INSENSITIVE);
+    public static final Pattern VARIABLE_LIST_PATTERN = Pattern.compile("\\w+(:\\s*(?<variables>.+))?", Pattern.CASE_INSENSITIVE);
+    public static final Pattern VARIABLE_PATTERN = Pattern.compile("(?<key>\\w+)=(?<value>[^;]+);?", Pattern.CASE_INSENSITIVE);
 
     public MessageProcessor(SequenceManager sequenceManager, Preferences preferences){
         this.sequenceManager = sequenceManager;
@@ -63,18 +66,21 @@ public class MessageProcessor implements IHttpListener {
             if(messageIsRequest){
                 byte[] request = messageInfo.getRequest();
                 System.out.println("Request: " + messageInfo.getRequest());
-                List<StepSequence> preExecSequences = extractExecSequencesFromRequest(requestInfo, EXECUTE_BEFORE_HEADER_PATTERN);
+                List<RequestSequenceInformation> preExecSequences = extractExecSequencesFromRequest(requestInfo, EXECUTE_BEFORE_HEADER_PATTERN);
                 if(preExecSequences.size() > 0){
                     //Remove the headers from the request
                     request = removeHeaderMatchingPattern(request, EXECUTE_BEFORE_HEADER_PATTERN);
 
                     //Execute the sequences
-                    for (StepSequence sequence : preExecSequences) {
-                        sequence.executeBlocking();
+                    for (RequestSequenceInformation requestSequenceInformation : preExecSequences) {
+                        StepSequence sequence = requestSequenceInformation.sequence;
+                        Map<String, String> variables = requestSequenceInformation.variables;
+                        JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Execute sequence: " + sequence.getTitle() + ", with variables: " + variables.toString());
+                        sequence.executeBlocking(variables);
                     }
                 }
 
-                List<StepSequence> postExecSequences = extractExecSequencesFromRequest(requestInfo, EXECUTE_AFTER_HEADER_PATTERN);
+                List<RequestSequenceInformation> postExecSequences = extractExecSequencesFromRequest(requestInfo, EXECUTE_AFTER_HEADER_PATTERN);
 
                 if(postExecSequences.size() > 0){
                     //Remove the headers from the request
@@ -82,8 +88,19 @@ public class MessageProcessor implements IHttpListener {
 
                     //Joining the sequences as string to set them as a comment to catch them in the response
                     String postExecSequencesJoined = EXECUTE_AFTER_HEADER + ":";
-                    for (StepSequence sequence : postExecSequences) {
-                        postExecSequencesJoined += sequence.getTitle() + EXECUTE_AFTER_COMMENT_DELIMITER;
+                    for (RequestSequenceInformation requestSequenceInformation : postExecSequences) {
+                        StepSequence sequence = requestSequenceInformation.sequence;
+                        Map<String, String> variables = requestSequenceInformation.variables;
+                        String variableString = "";
+                        if (variables.size() > 0) {
+                            variableString += ":";
+                            for (Map.Entry<String, String> entry : variables.entrySet()) {
+                                variableString += entry.getKey() + "=";
+                                variableString += entry.getValue() + ";";
+                            }
+                        }
+
+                        postExecSequencesJoined += sequence.getTitle() + variableString + EXECUTE_AFTER_COMMENT_DELIMITER;
                     }
 
                     if(!postExecSequencesJoined.isEmpty()){
@@ -118,11 +135,14 @@ public class MessageProcessor implements IHttpListener {
                 messageInfo.setRequest(request);
             }else{
                 // this is a response so we check for the comments
-                List<StepSequence> postExecSequences = extractExecSequencesFromComment(messageInfo.getComment(), EXECUTE_AFTER_HEADER_PATTERN);
+                List<RequestSequenceInformation> postExecSequences = extractExecSequencesFromComment(messageInfo.getComment(), EXECUTE_AFTER_HEADER_PATTERN);
                 if(postExecSequences.size() > 0){
                     //Execute the sequences
-                    for (StepSequence sequence : postExecSequences) {
-                        sequence.executeBlocking();
+                    for (RequestSequenceInformation requestSequenceInformation : postExecSequences) {
+                        StepSequence sequence = requestSequenceInformation.sequence;
+                        Map<String, String> variables = requestSequenceInformation.variables;
+                        JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Execute sequence: " + sequence.getTitle() + ", with variables: " + variables.toString());
+                        sequence.executeBlocking(variables);
                     }
                     // remove the added comment from the request
                     messageInfo.setComment(messageInfo.getComment().replaceAll(EXECUTE_AFTER_REGEX+EXECUTE_AFTER_COMMENT_DELIMITER,""));
@@ -227,26 +247,33 @@ public class MessageProcessor implements IHttpListener {
         return Stepper.callbacks.getHelpers().buildHttpMessage(newRequestHeaders, newBody);
     }
 
-    public Map<String, String> extractVariablesFromStepperHeader(String headerValue) {
-        //JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Extracting variable from: " + headerValue);
+    /**
+     * Extract all defined variables from the request sequence information string.
+     * 
+     * If a variable has more than one definition, the later one is used. 
+     * It expects the string to have a format that matches the definition in RequesteSequenceInformation.
+     * 
+     * For example, the string: `test: firstVariable=old; secondVariable=someValue; firstVariable=new`
+     * would be converted to a map with the following content:
+     * - firstVariable: new
+     * - secondVariable: someValue
+     * 
+     * @see RequestSequenceInformation
+     * @param sequenceInfoString The string that contains sequence information
+     * @return All defined variables
+     */
+    public Map<String, String> extractVariablesFromSequenceInfoString(String sequenceInfoString) {
         HashMap<String, String> map = new HashMap<>();
 
-        Pattern variableListPattern = Pattern.compile("\\w+(:\\s*(?<variables>.+))?", Pattern.CASE_INSENSITIVE);
-        Pattern variablePattern = Pattern.compile("(?<key>\\w+)=(?<value>[^;]+);?", Pattern.CASE_INSENSITIVE);
+        Matcher variableListMatcher = VARIABLE_LIST_PATTERN.matcher(sequenceInfoString);
 
-        Matcher variableListMatcher = variableListPattern.matcher(headerValue);
-
-        if (variableListMatcher.find()) {
+        if (variableListMatcher.find() && variableListMatcher.group("variables") != null) {
             String variableList = variableListMatcher.group("variables");
-            //JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Variable list: " + variableList);
-
-            Matcher variablesMatcher = variablePattern.matcher(variableList);
+            Matcher variablesMatcher = VARIABLE_PATTERN.matcher(variableList);
 
             while (variablesMatcher.find()) {
                 String variableKey = variablesMatcher.group("key");
                 String variableValue = variablesMatcher.group("value");
-
-                //JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Found variable key=" + variableKey + ", value=" + variableValue + ")");
 
                 map.put(variableKey, variableValue);
             }
@@ -256,17 +283,29 @@ public class MessageProcessor implements IHttpListener {
     }
 
     /**
+     * Extract a sequence's name from the request info string.
+     * @param sequenceInfoString String that contains the name and variables of a step sequence
+     * @return The sequence name
+     */
+    private Optional<String> extractSequenceNameFromSequenceInfoString(String sequenceInfoString) {
+        Matcher nameMatcher = STEPPER_SEQUENCE_NAME_PATTERN.matcher(sequenceInfoString);
+        if (!nameMatcher.find()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(nameMatcher.group(1).trim());
+    }
+
+    /**
      * Locates the X-Stepper-Execute-Before or X-Stepper-Execute-After headers and returns the matching sequences.
      * @param requestInfo
      * @param pattern
      * @return Optional value of step sequence to execute before or after the request.
      */
-    public List<StepSequence> extractExecSequencesFromRequest(IRequestInfo requestInfo, Pattern pattern){
+    public List<RequestSequenceInformation> extractExecSequencesFromRequest(IRequestInfo requestInfo, Pattern pattern){
         //Check if headers ask us to execute a request before the request.
         List<String> requestHeaders = requestInfo.getHeaders();
-        ArrayList<StepSequence> execSequences = new ArrayList<>();
-
-        Pattern namePattern = Pattern.compile("^([^:]+)(?::?)", Pattern.CASE_INSENSITIVE);
+        ArrayList<RequestSequenceInformation> execSequences = new ArrayList<>();
 
         for (Iterator<String> iterator = requestHeaders.iterator(); iterator.hasNext(); ) {
             String header = iterator.next();
@@ -279,17 +318,13 @@ public class MessageProcessor implements IHttpListener {
             ArrayList<StepSequence> currentSequences = new ArrayList<>();
             String stepperHeader = m.group(1).trim();
 
-            //JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Stepper header:" + stepperHeader);
+            Optional<String> optionalName = this.extractSequenceNameFromSequenceInfoString(stepperHeader);
 
-            Matcher nameMatcher = namePattern.matcher(stepperHeader);
-            if (!nameMatcher.find()) {
-                //JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Could not extract name");
+            if (optionalName.isEmpty()) {
                 continue;
             }
 
-            String sequenceName = nameMatcher.group(1);
-            //JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Name is: " + sequenceName);
-
+            String sequenceName = optionalName.get();
 
             Optional<StepSequence> execSequence = sequenceManager.getSequences().stream()
                     .filter(sequence -> sequence.getTitle().equalsIgnoreCase(sequenceName))
@@ -301,21 +336,10 @@ public class MessageProcessor implements IHttpListener {
                 JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Could not find execution sequence named: \"" + sequenceName + "\".");
 
             // Extract variables and store them in the sequences
-            Map<String, String> arguments = extractVariablesFromStepperHeader(stepperHeader);
-            //JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Extracted " + arguments.size() + " variables");
-            for (StepSequence sequence : currentSequences) {
-                //JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Checked sequence " + sequence.getTitle() + ", has " + sequence.getGlobalVariableManager().getVariables().size() + " variables");
-                for (StepVariable variable : sequence.getGlobalVariableManager().getVariables()) {
-                    //JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Test global variable " + variable.getIdentifier());
-                    if (arguments.containsKey(variable.getIdentifier())) {
-                        String value = arguments.get(variable.getIdentifier());
-                        variable.setValue(value);
-                    }
-                }
-            }
+            Map<String, String> arguments = extractVariablesFromSequenceInfoString(stepperHeader);
 
             for (StepSequence sequence : currentSequences) {
-                execSequences.add(sequence);
+                execSequences.add(new RequestSequenceInformation(sequence, arguments));
             }
         }
         return execSequences;
@@ -327,21 +351,31 @@ public class MessageProcessor implements IHttpListener {
      * @param pattern
      * @return Optional value of step sequence to execute after the request.
      */
-    public List<StepSequence> extractExecSequencesFromComment(String comment, Pattern pattern){
-        ArrayList<StepSequence> execSequences = new ArrayList<>();
+    public List<RequestSequenceInformation> extractExecSequencesFromComment(String comment, Pattern pattern){
+        ArrayList<RequestSequenceInformation> execSequences = new ArrayList<>();
         Matcher m = pattern.matcher(comment);
         if (m.find()) {
             String[] allSequences = m.group(1).split(EXECUTE_AFTER_COMMENT_DELIMITER);
-            for(String sequenceName : allSequences){
-                if(sequenceName != null && !sequenceName.isEmpty()){
+            for(String sequenceInfo : allSequences){
+                if(sequenceInfo != null && !sequenceInfo.isEmpty()){
+                    Optional<String> optionalName = this.extractSequenceNameFromSequenceInfoString(sequenceInfo);
+
+                    if (optionalName.isEmpty()) {
+                        continue;
+                    }
+
+                    String sequenceName = optionalName.get();
+
                     Optional<StepSequence> execSequence = sequenceManager.getSequences().stream()
-                            .filter(sequence -> sequence.getTitle().equalsIgnoreCase(sequenceName.trim()))
+                            .filter(sequence -> sequence.getTitle().equalsIgnoreCase(sequenceName))
                             .findFirst();
 
+                    Map<String, String> variables = this.extractVariablesFromSequenceInfoString(sequenceInfo);
+
                     if(execSequence.isPresent())
-                        execSequences.add(execSequence.get());
+                        execSequences.add(new RequestSequenceInformation(execSequence.get(), variables));
                     else
-                        JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Could not find execution sequence named: \"" + m.group(1).trim() + "\".");
+                        JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Could not find execution sequence named: \"" + sequenceInfo + "\".");
                 }
             }
         }
