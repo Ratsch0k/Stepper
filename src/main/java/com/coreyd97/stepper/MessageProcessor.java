@@ -75,7 +75,6 @@ public class MessageProcessor implements IHttpListener {
                     for (RequestSequenceInformation requestSequenceInformation : preExecSequences) {
                         StepSequence sequence = requestSequenceInformation.sequence;
                         Map<String, String> variables = requestSequenceInformation.variables;
-                        JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Execute sequence: " + sequence.getTitle() + ", with variables: " + variables.toString());
                         sequence.executeBlocking(variables);
                     }
                 }
@@ -141,7 +140,6 @@ public class MessageProcessor implements IHttpListener {
                     for (RequestSequenceInformation requestSequenceInformation : postExecSequences) {
                         StepSequence sequence = requestSequenceInformation.sequence;
                         Map<String, String> variables = requestSequenceInformation.variables;
-                        JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Execute sequence: " + sequence.getTitle() + ", with variables: " + variables.toString());
                         sequence.executeBlocking(variables);
                     }
                     // remove the added comment from the request
