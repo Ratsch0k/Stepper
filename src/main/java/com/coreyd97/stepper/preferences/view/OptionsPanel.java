@@ -115,11 +115,13 @@ public class OptionsPanel extends JPanel {
             }
         }));
 
+        // TODO: Re-enable export
+        /* 
         ComponentGroup exportGroup = new ComponentGroup(ComponentGroup.Orientation.VERTICAL, "Export Sequences");
         exportGroup.add(new JButton(new AbstractAction("Export Sequences To File") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String sequencesJson = exportSequencesAsString(sequenceManager.getSequences(), true);
+                String sequencesJson = exportSequencesAsString(sequenceManager.getStepSequenceStates(), true);
                 if(sequencesJson == null || sequencesJson.length() == 0) return;
 
                 JFileChooser fileChooser = new JFileChooser();
@@ -157,12 +159,15 @@ public class OptionsPanel extends JPanel {
             }
         }));
 
+
         PanelBuilder panelBuilder = new PanelBuilder();
         panelBuilder.setComponentGrid(new JComponent[][]{new JComponent[]{toolEnabledGroup, importGroup},
                                                                 new JComponent[]{toolEnabledGroup, exportGroup},
                                                                 new JComponent[]{configGroup, configGroup}});
+                                                                
         panelBuilder.setAlignment(Alignment.TOPMIDDLE);
         this.add(panelBuilder.build());
+        */
     }
 
     /**

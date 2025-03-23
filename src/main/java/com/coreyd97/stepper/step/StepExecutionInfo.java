@@ -3,18 +3,12 @@ package com.coreyd97.stepper.step;
 import burp.IHttpRequestResponse;
 
 public class StepExecutionInfo {
-    private Step step;
     private long responseTime;
     private IHttpRequestResponse requestResponse;
 
-    public StepExecutionInfo(Step step, IHttpRequestResponse requestResponse, long responseTime){
-        this.step = step;
+    public StepExecutionInfo(IHttpRequestResponse requestResponse, long responseTime){
         this.requestResponse = requestResponse;
         this.responseTime = responseTime;
-    }
-
-    public Step getStep() {
-        return step;
     }
 
     public long getResponseTime() {

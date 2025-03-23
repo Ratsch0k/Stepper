@@ -1,5 +1,6 @@
 package com.coreyd97.stepper.step.view;
 
+import com.coreyd97.stepper.Stepper;
 import com.coreyd97.stepper.util.view.PostExecutionStepVariableEditor;
 import com.coreyd97.stepper.util.view.PostExecutionStepVariableRenderer;
 import com.coreyd97.stepper.variable.PostExecutionStepVariable;

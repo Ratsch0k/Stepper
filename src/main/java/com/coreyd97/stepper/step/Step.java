@@ -107,7 +107,7 @@ public class Step implements IMessageEditorController {
 
     public StepExecutionInfo executeStep(List<StepVariable> replacements) throws SequenceExecutionException {
         byte[] requestWithoutReplacements = getRequest();
-        byte[] builtRequest;
+        byte[] builtRequest = new byte[]{};
 
         this.variableManager.updateVariablesBeforeExecution();
 
@@ -125,9 +125,9 @@ public class Step implements IMessageEditorController {
 //                        "Stepper Replacement Error", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 //                if(result == JOptionPane.NO_OPTION) throw new SequenceCancelledException("Binary data, user cancelled.");
 //            }
-            builtRequest = MessageProcessor.makeReplacementsForSingleSequence(requestWithoutReplacements, replacements);
-            HashMap<StepSequence, List<StepVariable>> allVariables = Stepper.instance.getSequenceManager().getRollingVariablesFromAllSequences();
-            builtRequest = MessageProcessor.makeReplacementsForAllSequences(builtRequest, allVariables);
+            //builtRequest = MessageProcessor.makeReplacementsForSingleSequence(requestWithoutReplacements, replacements);
+            //HashMap<StepSequence, List<StepVariable>> allVariables = Stepper.instance.getSequenceManager().getRollingVariablesFromAllSequences();
+            //builtRequest = MessageProcessor.makeReplacementsForAllSequences(builtRequest, allVariables);
         }else{
             builtRequest = Arrays.copyOf(requestWithoutReplacements, requestWithoutReplacements.length);
         }
@@ -165,7 +165,7 @@ public class Step implements IMessageEditorController {
 
         setResponseBody(requestResponse.getResponse());
 
-        this.lastExecutionInfo = new StepExecutionInfo(this, requestResponse, end-start);
+        //this.lastExecutionInfo = new StepExecutionInfo(this, requestResponse, end-start);
 
         //Pull variables from response
         this.variableManager.updateVariablesAfterExecution(lastExecutionInfo);

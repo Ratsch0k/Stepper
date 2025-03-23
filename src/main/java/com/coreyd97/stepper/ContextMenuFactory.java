@@ -4,9 +4,11 @@ import burp.IContextMenuFactory;
 import burp.IContextMenuInvocation;
 import burp.IHttpRequestResponse;
 import com.coreyd97.stepper.sequence.StepSequence;
+import com.coreyd97.stepper.sequence.StepSequenceState;
 import com.coreyd97.stepper.sequencemanager.SequenceManager;
 import com.coreyd97.stepper.step.Step;
-import com.coreyd97.stepper.step.view.StepPanel;
+import com.coreyd97.stepper.step.view.StepStatePanel;
+import com.coreyd97.stepper.sequence.view.StepSequenceStateTab;
 import com.coreyd97.stepper.sequence.view.StepSequenceTab;
 import com.coreyd97.stepper.variable.StepVariable;
 
@@ -35,8 +37,14 @@ public class ContextMenuFactory implements IContextMenuFactory {
         String addMenuTitle = String.format("Add %d %s to Stepper", messages.length, messages.length == 1 ? "item":"items");
         JMenu addStepMenu = new JMenu(addMenuTitle);
 
-        for (StepSequence sequence : this.sequenceManager.getSequences()) {
-            JMenuItem item = new JMenuItem(sequence.getTitle());
+        for (StepSequenceState sequence : this.sequenceManager.getStepSequenceStates()) {
+            if (sequence == null) continue;
+
+            String title = sequence.getTitle();
+            if (title == null) {
+                title = "unknown-" + sequence.toString();
+            }
+            JMenuItem item = new JMenuItem(title);
             item.addActionListener(actionEvent -> {
                 for (IHttpRequestResponse message : messages) {
                     sequence.addStep(message);
@@ -49,7 +57,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
         newSequence.addActionListener(actionEvent -> {
             String name = JOptionPane.showInputDialog(Stepper.getUI().getUiComponent(), "Enter a name to identify the sequence: ", "", JOptionPane.PLAIN_MESSAGE);
             if(name != null) {
-                StepSequence stepSequence = new StepSequence(name);
+                StepSequenceState stepSequence = new StepSequenceState(name);
                 for (IHttpRequestResponse message : messages) {
                     stepSequence.addStep(message);
                 }
@@ -64,7 +72,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
 
         if(invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST){
             menuItems.addAll(buildCopyHeaderMenuItems(invocation));
-            menuItems.addAll(buildVariableMenuItems(invocation));
+            //swmenuItems.addAll(buildVariableMenuItems(invocation));
         }
         return menuItems;
     }
@@ -74,7 +82,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
 
         JMenu addStepHeaderToClipboardMenu = new JMenu("Copy Header To Clipboard");
 
-        for (StepSequence stepSequence : sequenceManager.getSequences()) {
+        for (StepSequenceState stepSequence : sequenceManager.getStepSequenceStates()) {
             JMenu sequenceItem = new JMenu(stepSequence.getTitle());
 
             JMenuItem execBeforeMenuItem = new JMenuItem("Execute-Before Header");
@@ -99,12 +107,14 @@ public class ContextMenuFactory implements IContextMenuFactory {
         return menuItems;
     }
 
+    // TODO: Re-add variable context menu
+    /*
     private List<JMenuItem> buildVariableMenuItems(IContextMenuInvocation invocation){
         List<JMenuItem> menuItems = new ArrayList<>();
 
-        HashMap<StepSequence, List<StepVariable>> sequenceVariableMap = new HashMap<>();
+        HashMap<StepSequenceState, List<StepVariable>> sequenceVariableMap = new HashMap<>();
 
-        StepSequenceTab selectedStepSet = Stepper.getUI().getSelectedStepSet();
+        StepSequenceStateTab selectedStepSet = Stepper.getUI().getSelectedStepSet();
         boolean isViewingSequenceStep = false;
         if(selectedStepSet != null){
             StepPanel selectedStepPanel = selectedStepSet.getSelectedStepPanel();
@@ -154,6 +164,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
         }
         return menuItems;
     }
+        */
 
     private List<JMenuItem> buildAddVariableToClipboardMenuItems(StepSequence sequence, Collection<StepVariable> variables){
         List<JMenuItem> menuItems = new ArrayList<>();

@@ -1,6 +1,8 @@
 package com.coreyd97.stepper.variable;
 
+import com.coreyd97.stepper.Stepper;
 import com.coreyd97.stepper.sequence.StepSequence;
+import com.coreyd97.stepper.sequence.StepSequenceState;
 import com.coreyd97.stepper.step.Step;
 import com.coreyd97.stepper.step.StepExecutionInfo;
 
@@ -49,7 +51,9 @@ public abstract class StepVariable {
     public abstract String getValuePreview();
 
     protected void notifyChanges(){
-        if(this.variableManager != null) variableManager.onVariableChange(this);
+        if(this.variableManager != null) {
+            variableManager.onVariableChange(this);
+        }
     }
 
     public void setVariableManager(VariableManager variableManager){
@@ -73,6 +77,10 @@ public abstract class StepVariable {
     }
 
     public static Pattern createIdentifierPatternWithSequence(StepSequence sequence, StepVariable variable){
+        return createIdentifierPatternWithSequence(sequence.getTitle(), variable.getIdentifier());
+    }
+
+    public static Pattern createIdentifierPatternWithSequence(StepSequenceState sequence, StepVariable variable){
         return createIdentifierPatternWithSequence(sequence.getTitle(), variable.getIdentifier());
     }
 

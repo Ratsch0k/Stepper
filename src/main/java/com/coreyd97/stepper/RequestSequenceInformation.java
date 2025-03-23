@@ -3,6 +3,7 @@ package com.coreyd97.stepper;
 import java.util.Map;
 
 import com.coreyd97.stepper.sequence.StepSequence;
+import com.coreyd97.stepper.sequence.StepSequenceState;
 
 /**
  * Holds information about a step sequence as defined in a request with the stepper headers.
@@ -29,14 +30,14 @@ class RequestSequenceInformation {
     /**
      * Defines step sequence.
      */
-    public StepSequence sequence;
+    public StepSequenceState sequence;
 
     /**
      * All variables for the sequence as defined in the stepper header.
      */
     public Map<String, String> variables;
 
-    public RequestSequenceInformation(StepSequence sequence, Map<String, String> variables) {
+    public RequestSequenceInformation(StepSequenceState sequence, Map<String, String> variables) {
         this.sequence = sequence;
         this.variables = variables;
     }

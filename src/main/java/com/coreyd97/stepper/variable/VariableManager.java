@@ -1,5 +1,6 @@
 package com.coreyd97.stepper.variable;
 
+import com.coreyd97.stepper.Stepper;
 import com.coreyd97.stepper.variable.listener.StepVariableListener;
 
 import java.util.ArrayList;

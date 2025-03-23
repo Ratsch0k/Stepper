@@ -1,10 +1,13 @@
 package com.coreyd97.stepper.sequence.view;
 
 import com.coreyd97.BurpExtenderUtilities.CustomTabComponent;
+import com.coreyd97.stepper.Stepper;
 import com.coreyd97.stepper.sequence.StepSequence;
+import com.coreyd97.stepper.sequence.StepSequenceState;
+import com.coreyd97.stepper.sequence.listener.SequenceStateListener;
 import com.coreyd97.stepper.step.Step;
+import com.coreyd97.stepper.step.StepState;
 import com.coreyd97.stepper.step.listener.StepAdapter;
-import com.coreyd97.stepper.step.view.StepPanel;
 import com.coreyd97.stepper.step.view.StepStatePanel;
 
 import javax.swing.*;
@@ -13,13 +16,12 @@ import java.awt.event.*;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
-public class SequenceContainer extends JPanel {
-
-    private final StepSequence stepSequence;
-    private HashMap<Step, StepPanel> stepToPanelMap;
+public class SequenceStateContainer extends JPanel {
+    private final StepSequenceState stepSequence;
+    private HashMap<StepState, StepStatePanel> stepToPanelMap;
     private JTabbedPane tabbedContainer;
 
-    public SequenceContainer(StepSequence stepSequence){
+    public SequenceStateContainer(StepSequenceState stepSequence){
         super(new BorderLayout());
         this.stepSequence = stepSequence;
         this.stepToPanelMap = new HashMap<>();
@@ -27,20 +29,25 @@ public class SequenceContainer extends JPanel {
         this.add(tabbedContainer, BorderLayout.CENTER);
 
         //Add panels for existing steps
-        for (Step step : this.stepSequence.getSteps()) {
+        for (StepState step : this.stepSequence.getSteps()) {
             addPanelForStep(step);
         }
 
         //Listen for new steps and changes to the sequence globals
-        this.stepSequence.addStepListener(new StepAdapter(){
+        this.stepSequence.addStepListener(new SequenceStateListener(){
             @Override
-            public void onStepAdded(Step step) {
+            public void onStepAdded(StepState step) {
                 addPanelForStep(step);
             }
 
             @Override
-            public void onStepRemoved(Step step) {
+            public void onStepRemoved(StepState step) {
                 removePanelForStep(step);
+            }
+
+            @Override
+            public void onStepUpdated(StepState step) {
+
             }
         });
     }
@@ -48,7 +55,7 @@ public class SequenceContainer extends JPanel {
     private JTabbedPane buildTabbedContainer(){
         JTabbedPane tabbedPanel = new JTabbedPane();
 
-        tabbedPanel.addTab("Globals", new SequenceGlobalsPanel(this.stepSequence));
+        tabbedPanel.addTab("Globals", new SequenceStateGlobalsPanel(this.stepSequence));
         tabbedPanel.addTab("Add Step", null);
         CustomTabComponent addStepTab = new CustomTabComponent("Add Step");
         tabbedPanel.setTabComponentAt(1, addStepTab);
@@ -64,7 +71,7 @@ public class SequenceContainer extends JPanel {
         return tabbedPanel;
     }
 
-    private void addTabForStep(Step step, StepPanel panel){
+    private void addTabForStep(StepState step, StepStatePanel panel){
         int tabNumber = tabbedContainer.getTabCount()-1;
         tabbedContainer.insertTab(null, null, panel, null, tabNumber);
 
@@ -128,7 +135,7 @@ public class SequenceContainer extends JPanel {
         }
     }
 
-    private void removeTabbedEntry(StepPanel stepPanel){
+    private void removeTabbedEntry(StepStatePanel stepPanel){
         tabbedContainer.remove(stepPanel);
         if(tabbedContainer.getSelectedIndex() == tabbedContainer.getTabCount()-1){
             //If we're now viewing the "Add Step" tab, view the previous tab instead
@@ -137,8 +144,8 @@ public class SequenceContainer extends JPanel {
         updateTabIndices();
     }
 
-    private void addPanelForStep(Step step){
-        StepPanel panel = new StepPanel(this, step);
+    private void addPanelForStep(StepState step){
+        StepStatePanel panel = new StepStatePanel(this, step);
         this.stepToPanelMap.put(step, panel);
         addTabForStep(step, panel);
 
@@ -146,23 +153,23 @@ public class SequenceContainer extends JPanel {
         this.repaint();
     }
 
-    private void removePanelForStep(Step step){
-        StepPanel panel = this.stepToPanelMap.remove(step);
+    private void removePanelForStep(StepState step){
+        StepStatePanel panel = this.stepToPanelMap.remove(step);
         updateSubsequentPanels(panel); //Update the panels before this one is removed...
         removeTabbedEntry(panel);
         this.revalidate();
         this.repaint();
     }
 
-    public StepPanel getPanelForStep(Step step){
+    public StepStatePanel getPanelForStep(StepState step){
         return this.stepToPanelMap.get(step);
     }
 
-    public void setActivePanel(StepPanel stepPanel){
+    public void setActivePanel(StepStatePanel stepPanel){
         this.tabbedContainer.setSelectedComponent(stepPanel);
     }
 
-    public void updateSubsequentPanels(StepPanel panel){
+    public void updateSubsequentPanels(StepStatePanel panel){
         int tabIndex = this.tabbedContainer.indexOfComponent(panel) + 1;
 
         //Loop over panels, not including the Add Step panel

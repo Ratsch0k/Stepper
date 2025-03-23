@@ -3,10 +3,12 @@ package com.coreyd97.stepper;
 import burp.ITab;
 import com.coreyd97.BurpExtenderUtilities.CustomTabComponent;
 import com.coreyd97.BurpExtenderUtilities.PopOutPanel;
-import com.coreyd97.stepper.sequencemanager.listener.StepSequenceListener;
+import com.coreyd97.stepper.sequencemanager.listener.StepSequenceStateListener;
 import com.coreyd97.stepper.about.view.AboutPanel;
 import com.coreyd97.stepper.preferences.view.OptionsPanel;
 import com.coreyd97.stepper.sequence.StepSequence;
+import com.coreyd97.stepper.sequence.StepSequenceState;
+import com.coreyd97.stepper.sequence.view.StepSequenceStateTab;
 import com.coreyd97.stepper.sequence.view.StepSequenceTab;
 import com.coreyd97.stepper.sequencemanager.SequenceManager;
 
@@ -23,9 +25,11 @@ public class StepperUI implements ITab {
     private final JTabbedPane tabbedPane;
     private final PopOutPanel popOutPanel;
     private final HashMap<StepSequence, StepSequenceTab> managerTabMap;
+    private final HashMap<StepSequenceState, StepSequenceStateTab> sequenceTabMap;
 
     public StepperUI(SequenceManager sequenceManager){
         this.sequenceManager = sequenceManager;
+        this.sequenceTabMap = new HashMap<>();
         this.managerTabMap = new HashMap<>();
 
         this.tabbedPane = new JTabbedPane();
@@ -35,7 +39,7 @@ public class StepperUI implements ITab {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if(SwingUtilities.isLeftMouseButton(e)) {
-                    sequenceManager.addStepSequence(new StepSequence());
+                    sequenceManager.addStepSequence(new StepSequenceState());
                 }
             }
         });
@@ -47,31 +51,31 @@ public class StepperUI implements ITab {
         this.popOutPanel = new PopOutPanel(this.tabbedPane, "Stepper");
 
         //Add tabs for existing sequences
-        for (StepSequence sequence : this.sequenceManager.getSequences()) {
+        for (StepSequenceState sequence : this.sequenceManager.getStepSequenceStates()) {
             addTabForSequence(sequence);
         }
 
-        if(this.sequenceManager.getSequences().size() == 0){
+        if(this.sequenceManager.getStepSequenceStates().size() == 0){
             this.tabbedPane.setSelectedIndex(2); //View about page if no sequences
         }
 
         //Listen for tab additions and removals
-        this.sequenceManager.addStepSequenceListener(new StepSequenceListener() {
+        this.sequenceManager.addStepSequenceListener(new StepSequenceStateListener() {
             @Override
-            public void onStepSequenceAdded(StepSequence sequence) {
+            public void onStepSequenceAdded(StepSequenceState sequence) {
                 addTabForSequence(sequence);
             }
 
             @Override
-            public void onStepSequenceRemoved(StepSequence sequence) {
+            public void onStepSequenceRemoved(StepSequenceState sequence) {
                 removeTabForSequence(sequence);
             }
         });
     }
 
-    private void addTabForSequence(StepSequence sequence){
-        StepSequenceTab tab = new StepSequenceTab(sequence);
-        managerTabMap.put(sequence, tab);
+    private void addTabForSequence(StepSequenceState sequence) {
+        StepSequenceStateTab tab = new StepSequenceStateTab(sequence);
+        sequenceTabMap.put(sequence, tab);
         int newTabLocation = this.tabbedPane.getTabCount()-3;
         this.tabbedPane.insertTab("", null, tab, null, newTabLocation);
 
@@ -92,15 +96,15 @@ public class StepperUI implements ITab {
         this.tabbedPane.setSelectedIndex(newTabLocation);
     }
 
-    private void removeTabForSequence(StepSequence sequence){
-        StepSequenceTab stepSequenceTab = this.getTabForStepManager(sequence);
+    private void removeTabForSequence(StepSequenceState sequence){
+        StepSequenceStateTab stepSequenceTab = this.getTabForStepStateManager(sequence);
         int removedIndex = this.tabbedPane.indexOfComponent(stepSequenceTab);
         this.tabbedPane.remove(stepSequenceTab);
-        this.managerTabMap.remove(sequence);
+        this.sequenceTabMap.remove(sequence);
 
-        if(removedIndex == 0 && this.managerTabMap.size() == 0){ //If we removed the leftmost tab and have no other tabs
+        if(removedIndex == 0 && this.sequenceTabMap.size() == 0){ //If we removed the leftmost tab and have no other tabs
             this.tabbedPane.setSelectedIndex(2); //View the about tab
-        }else if(removedIndex == this.tabbedPane.getTabCount() - 3 && this.managerTabMap.size() > 0) {
+        }else if(removedIndex == this.tabbedPane.getTabCount() - 3 && this.sequenceTabMap.size() > 0) {
             //If we removed the rightmost tab, but still have other tabs, move to a different tab instead
             this.tabbedPane.setSelectedIndex(removedIndex-1);
         }
@@ -110,11 +114,15 @@ public class StepperUI implements ITab {
         return this.managerTabMap.get(manager);
     }
 
-    public StepSequenceTab getSelectedStepSet(){
+    public StepSequenceStateTab getTabForStepStateManager(StepSequenceState manager) {
+        return this.sequenceTabMap.get(manager);
+    }
+
+    public StepSequenceStateTab getSelectedStepSet(){
         if(!getUiComponent().isVisible()) return null;
         Component selectedStepSet = this.tabbedPane.getSelectedComponent();
-        if(selectedStepSet instanceof StepSequenceTab)
-            return (StepSequenceTab) selectedStepSet;
+        if(selectedStepSet instanceof StepSequenceStateTab)
+            return (StepSequenceStateTab) selectedStepSet;
         else
             return null;
     }

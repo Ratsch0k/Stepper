@@ -1,7 +1,8 @@
 package com.coreyd97.stepper.variable;
 
+import com.coreyd97.stepper.Stepper;
 import com.coreyd97.stepper.step.StepExecutionInfo;
-import com.coreyd97.stepper.step.StepVariableManager;
+import com.coreyd97.stepper.step.StepStateVariableManager;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -33,6 +34,7 @@ public class RegexVariable extends PostExecutionStepVariable {
             }
         } catch (PatternSyntaxException ignored) {
         }
+
     }
 
     @Override
@@ -44,7 +46,7 @@ public class RegexVariable extends PostExecutionStepVariable {
             this.regex = null;
         }
         if(this.variableManager != null) {
-            ((StepVariableManager) this.variableManager).updateVariableWithPreviousExecutionResult(this);
+            ((StepStateVariableManager) this.variableManager).updateVariableWithPreviousExecutionResult(this);
         }
         notifyChanges();
     }
@@ -114,5 +116,10 @@ public class RegexVariable extends PostExecutionStepVariable {
         copiedVariable.setValue(this.value);
 
         return copiedVariable;
+    }
+
+    @Override
+    public String toString() {
+        return "RegexVariable{id=" + this.identifier + ", value=" + this.value + ", regexString=" + this.regexString + ", regex=" + this.regex + "}";
     }
 }

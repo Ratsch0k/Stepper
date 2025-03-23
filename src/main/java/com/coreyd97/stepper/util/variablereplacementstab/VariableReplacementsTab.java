@@ -4,8 +4,12 @@ import burp.IMessageEditorController;
 import burp.IMessageEditorTab;
 import com.coreyd97.stepper.sequencemanager.SequenceManager;
 import com.coreyd97.stepper.step.Step;
+import com.coreyd97.stepper.step.StepState;
 import com.coreyd97.stepper.variable.StepVariable;
+import com.coreyd97.stepper.Stepper;
+import com.coreyd97.stepper.StepperUI;
 import com.coreyd97.stepper.sequence.StepSequence;
+import com.coreyd97.stepper.sequence.StepSequenceState;
 import com.coreyd97.stepper.util.view.WrappedTextPane;
 import com.coreyd97.stepper.variable.listener.StepVariableListener;
 
@@ -22,7 +26,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class VariableReplacementsTab implements IMessageEditorTab {//, IStepListener, IStepVariableListener {
-
     private final SequenceManager sequenceManager;
     private final IMessageEditorController controller;
     private final JScrollPane scrollPane;
@@ -30,7 +33,7 @@ public class VariableReplacementsTab implements IMessageEditorTab {//, IStepList
     private final StyledDocument document;
     private final boolean isEditable;
 
-    private Step step;
+    private StepState stepState;
     private byte[] rawRequest;
     private TabVariableListener tabVariableListener;
 
@@ -71,8 +74,8 @@ public class VariableReplacementsTab implements IMessageEditorTab {//, IStepList
                 "Simply click to another tab and back to display the correct content.");
     }
 
-    void setStep(Step controller){
-        this.step = controller;
+    void setStep(StepState controller){
+        this.stepState = controller;
     }
 
     @Override
@@ -116,11 +119,11 @@ public class VariableReplacementsTab implements IMessageEditorTab {//, IStepList
             this.textArea.setText("");
             return;
         }
-        HashMap<StepSequence, List<StepVariable>> variables;
-        if(this.step != null){
+        HashMap<StepSequenceState, List<StepVariable>> variables;
+        if(this.stepState != null){
             variables = new HashMap<>();
-            variables.put(this.step.getSequence(),
-                    this.step.getSequence().getRollingVariablesUpToStep(this.step));
+            variables.put(this.stepState.getSequence(),
+                    this.stepState.getSequence().getRollingVariablesUpToStep(this.stepState));
         }else{
             variables = this.sequenceManager.getRollingVariablesFromAllSequences();
         }
@@ -138,17 +141,17 @@ public class VariableReplacementsTab implements IMessageEditorTab {//, IStepList
     /**
      * Custom find and replace to identify and highlight regions where replaced.
      */
-    private void replaceAndHighlight(String content, HashMap<StepSequence, List<StepVariable>> sequenceVariables) throws BadLocationException {
+    private void replaceAndHighlight(String content, HashMap<StepSequenceState, List<StepVariable>> sequenceVariables) throws BadLocationException {
         StringBuffer output;
         String contentToSearch = content;
         ArrayList<Integer[]> highlightRanges = new ArrayList<>(); // [ Offset , Length ]
-        for (Map.Entry<StepSequence, List<StepVariable>> entry : sequenceVariables.entrySet()) {
-            StepSequence sequence = entry.getKey();
+        for (Map.Entry<StepSequenceState, List<StepVariable>> entry : sequenceVariables.entrySet()) {
+            StepSequenceState sequence = entry.getKey();
             List<StepVariable> variables = entry.getValue();
 
             for (StepVariable stepVariable : variables) {
                 output = new StringBuffer();
-                Pattern pattern = this.step != null ? //Are we dealing with a step message editor?
+                Pattern pattern = this.stepState != null ? //Are we dealing with a step message editor?
                         StepVariable.createIdentifierPattern(stepVariable)
                         : StepVariable.createIdentifierPatternWithSequence(sequence, stepVariable);
 

@@ -37,7 +37,7 @@ public class StepSequence
     public StepSequence(String title, ArrayList<StepListener> stepListeners, ArrayList<SequenceExecutionListener> sequenceExecutionListeners, Optional<StepSequence> originalSequence) {
         this.steps = new Vector<>();
         this.stepListeners = stepListeners;
-        this.globalVariablesManager = new GlobalVariableManager(this);
+        //this.globalVariablesManager = new GlobalVariableManager(this);
         this.sequenceExecutionListeners = sequenceExecutionListeners;
         this.title = title;
         this.originalSequence = originalSequence;
@@ -56,17 +56,14 @@ public class StepSequence
     }
 
     public StepSequence copy() {
-        Stepper.callbacks.printOutput("Copying step sequence");
         StepSequence copied = new StepSequence(this.title, this.stepListeners, this.sequenceExecutionListeners, Optional.of(this));
 
         copied.steps = this.steps;
-        copied.globalVariablesManager = new GlobalVariableManager(copied);
+        //copied.globalVariablesManager = new GlobalVariableManager(copied);
 
         // Make a deep copy of all variable as to not change the original variables
         for (StepVariable variable : this.globalVariablesManager.getVariables()) {
-            Stepper.callbacks.printOutput("Copying variable: " + variable + "=" + variable.getValue());
             StepVariable copiedVariable = variable.copy();
-            Stepper.callbacks.printOutput("Copied: " + copiedVariable + "=" + variable.getValue());
             copied.globalVariablesManager.addVariable(copiedVariable);
         }
 

@@ -4,6 +4,8 @@ import burp.*;
 
 import com.coreyd97.BurpExtenderUtilities.Preferences;
 import com.coreyd97.stepper.sequence.StepSequence;
+import com.coreyd97.stepper.sequence.StepSequenceState;
+import com.coreyd97.stepper.sequence.view.StepSequenceTab;
 import com.coreyd97.stepper.sequencemanager.SequenceManager;
 import com.coreyd97.stepper.util.ReplacingInputStream;
 import com.coreyd97.stepper.variable.PreExecutionStepVariable;
@@ -26,14 +28,14 @@ public class MessageProcessor implements IHttpListener {
     public static final String EXECUTE_AFTER_HEADER = "X-Stepper-Execute-After";
     public static final String EXECUTE_BEFORE_REGEX = EXECUTE_BEFORE_HEADER + ":(.*)";
     public static final String EXECUTE_AFTER_REGEX = EXECUTE_AFTER_HEADER+":(.*)";
-    public static final String EXECUTE_AFTER_COMMENT_DELIMITER = "#%~%#";
+    public static final String EXECUTE_AFTER_COMMENT_DELIMITER = "#%~%#";s
     public static final Pattern EXECUTE_BEFORE_HEADER_PATTERN = Pattern.compile("^" + EXECUTE_BEFORE_REGEX + "$", Pattern.CASE_INSENSITIVE);
     public static final Pattern EXECUTE_AFTER_HEADER_PATTERN = Pattern.compile("^" + EXECUTE_AFTER_REGEX + "$", Pattern.CASE_INSENSITIVE);
     public static final String STEPPER_IGNORE_HEADER = "X-Stepper-Ignore";
     public static final Pattern STEPPER_IGNORE_PATTERN = Pattern.compile("^"+STEPPER_IGNORE_HEADER, Pattern.CASE_INSENSITIVE);
     public static final Pattern STEPPER_SEQUENCE_NAME_PATTERN = Pattern.compile("^([^:]+)(?::?)", Pattern.CASE_INSENSITIVE);
-    public static final Pattern VARIABLE_LIST_PATTERN = Pattern.compile("\\w+(:\\s*(?<variables>.+))?", Pattern.CASE_INSENSITIVE);
-    public static final Pattern VARIABLE_PATTERN = Pattern.compile("(?<key>\\w+)=(?<value>[^;]+);?", Pattern.CASE_INSENSITIVE);
+    public static final Pattern VARIABLE_LIST_PATTERN = Pattern.compile("[^:]+(:\\s*(?<variables>.+))?", Pattern.CASE_INSENSITIVE);
+    public static final Pattern VARIABLE_PATTERN = Pattern.compile("(?<key>[^=]+)=(?<value>[^;]+);?", Pattern.CASE_INSENSITIVE);
 
     public MessageProcessor(SequenceManager sequenceManager, Preferences preferences){
         this.sequenceManager = sequenceManager;
@@ -73,9 +75,9 @@ public class MessageProcessor implements IHttpListener {
 
                     //Execute the sequences
                     for (RequestSequenceInformation requestSequenceInformation : preExecSequences) {
-                        StepSequence sequence = requestSequenceInformation.sequence;
+                        StepSequenceState sequence = requestSequenceInformation.sequence;
                         Map<String, String> variables = requestSequenceInformation.variables;
-                        StepSequenceExecutor.execute(sequence, variables);
+                        StepSequenceExecutor.execute(sequence, variables, false);
                     }
                 }
 
@@ -88,7 +90,7 @@ public class MessageProcessor implements IHttpListener {
                     //Joining the sequences as string to set them as a comment to catch them in the response
                     String postExecSequencesJoined = EXECUTE_AFTER_HEADER + ":";
                     for (RequestSequenceInformation requestSequenceInformation : postExecSequences) {
-                        StepSequence sequence = requestSequenceInformation.sequence;
+                        StepSequenceState sequence = requestSequenceInformation.sequence;
                         Map<String, String> variables = requestSequenceInformation.variables;
                         String variableString = "";
                         if (variables.size() > 0) {
@@ -108,7 +110,7 @@ public class MessageProcessor implements IHttpListener {
                 }
 
 
-                HashMap<StepSequence, List<StepVariable>> allVariables = sequenceManager.getRollingVariablesFromAllSequences();
+                HashMap<StepSequenceState, List<StepVariable>> allVariables = sequenceManager.getRollingVariablesFromAllSequences();
 
                 if(allVariables.size() > 0 && hasStepVariable(request)) {
 
@@ -138,9 +140,9 @@ public class MessageProcessor implements IHttpListener {
                 if(postExecSequences.size() > 0){
                     //Execute the sequences
                     for (RequestSequenceInformation requestSequenceInformation : postExecSequences) {
-                        StepSequence sequence = requestSequenceInformation.sequence;
+                        StepSequenceState sequence = requestSequenceInformation.sequence;
                         Map<String, String> variables = requestSequenceInformation.variables;
-                        StepSequenceExecutor.execute(sequence, variables);
+                        StepSequenceExecutor.execute(sequence, variables, false);
                     }
                     // remove the added comment from the request
                     messageInfo.setComment(messageInfo.getComment().replaceAll(EXECUTE_AFTER_REGEX+EXECUTE_AFTER_COMMENT_DELIMITER,""));
@@ -209,12 +211,12 @@ public class MessageProcessor implements IHttpListener {
      * @return
      */
     public static byte[] makeReplacementsForAllSequences(byte[] originalContent,
-                                                         HashMap<StepSequence, List<StepVariable>> sequenceVariableMap) {
+                                                         HashMap<StepSequenceState, List<StepVariable>> sequenceVariableMap) {
         byte[] request = Arrays.copyOf(originalContent, originalContent.length);
 
         List<ReplacingInputStream.Replacement> replacements = new ArrayList<>();
-        for (Map.Entry<StepSequence, List<StepVariable>> sequenceEntry : sequenceVariableMap.entrySet()) {
-            StepSequence sequence = sequenceEntry.getKey();
+        for (Map.Entry<StepSequenceState, List<StepVariable>> sequenceEntry : sequenceVariableMap.entrySet()) {
+            StepSequenceState sequence = sequenceEntry.getKey();
             List<StepVariable> variables = sequenceEntry.getValue();
             for (StepVariable variable : variables) {
                 String match = StepVariable.createVariableString(sequence.getTitle(), variable.getIdentifier());
@@ -313,7 +315,7 @@ public class MessageProcessor implements IHttpListener {
                 continue;
             }
 
-            ArrayList<StepSequence> currentSequences = new ArrayList<>();
+            ArrayList<StepSequenceState> currentSequences = new ArrayList<>();
             String stepperHeader = m.group(1).trim();
 
             Optional<String> optionalName = this.extractSequenceNameFromSequenceInfoString(stepperHeader);
@@ -324,7 +326,7 @@ public class MessageProcessor implements IHttpListener {
 
             String sequenceName = optionalName.get();
 
-            Optional<StepSequence> execSequence = sequenceManager.getSequences().stream()
+            Optional<StepSequenceState> execSequence = sequenceManager.getStepSequenceStates().stream()
                     .filter(sequence -> sequence.getTitle().equalsIgnoreCase(sequenceName))
                     .findFirst();
 
@@ -336,7 +338,7 @@ public class MessageProcessor implements IHttpListener {
             // Extract variables and store them in the sequences
             Map<String, String> arguments = extractVariablesFromSequenceInfoString(stepperHeader);
 
-            for (StepSequence sequence : currentSequences) {
+            for (StepSequenceState sequence : currentSequences) {
                 execSequences.add(new RequestSequenceInformation(sequence, arguments));
             }
         }
@@ -364,7 +366,7 @@ public class MessageProcessor implements IHttpListener {
 
                     String sequenceName = optionalName.get();
 
-                    Optional<StepSequence> execSequence = sequenceManager.getSequences().stream()
+                    Optional<StepSequenceState> execSequence = sequenceManager.getStepSequenceStates().stream()
                             .filter(sequence -> sequence.getTitle().equalsIgnoreCase(sequenceName))
                             .findFirst();
 
