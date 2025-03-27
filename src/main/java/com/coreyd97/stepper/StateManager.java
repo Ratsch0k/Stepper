@@ -27,8 +27,7 @@ public class StateManager implements StepSequenceListener, StepListener, StepVar
     }
 
     public void saveCurrentSequences(){
-        // TODO: Re-enable settings
-        //this.preferences.setSetting(Globals.PREF_STEP_SEQUENCES, this.sequenceManager.getSequences());
+        this.preferences.setSetting(Globals.PREF_STEP_SEQUENCES, this.sequenceManager.getStepSequenceStates());
     }
 
     public void loadSavedSequences(){
