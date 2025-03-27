@@ -26,16 +26,20 @@ public class MessageProcessor implements IHttpListener {
     private final Preferences preferences;
     public static final String EXECUTE_BEFORE_HEADER = "X-Stepper-Execute-Before";
     public static final String EXECUTE_AFTER_HEADER = "X-Stepper-Execute-After";
+    public static final String EXECUTE_VAR_HEADER = "X-Stepper-Var";
     public static final String EXECUTE_BEFORE_REGEX = EXECUTE_BEFORE_HEADER + ":(.*)";
     public static final String EXECUTE_AFTER_REGEX = EXECUTE_AFTER_HEADER+":(.*)";
-    public static final String EXECUTE_AFTER_COMMENT_DELIMITER = "#%~%#";s
+    public static final String EXECUTE_VAR_REGEX = EXECUTE_VAR_HEADER + ":(.*)";
+    public static final String EXECUTE_AFTER_COMMENT_DELIMITER = "#%~%#";
     public static final Pattern EXECUTE_BEFORE_HEADER_PATTERN = Pattern.compile("^" + EXECUTE_BEFORE_REGEX + "$", Pattern.CASE_INSENSITIVE);
     public static final Pattern EXECUTE_AFTER_HEADER_PATTERN = Pattern.compile("^" + EXECUTE_AFTER_REGEX + "$", Pattern.CASE_INSENSITIVE);
+    public static final Pattern EXECUTE_VAR_HEADER_PATTERN = Pattern.compile("^" + EXECUTE_VAR_REGEX + "$", Pattern.CASE_INSENSITIVE);
     public static final String STEPPER_IGNORE_HEADER = "X-Stepper-Ignore";
     public static final Pattern STEPPER_IGNORE_PATTERN = Pattern.compile("^"+STEPPER_IGNORE_HEADER, Pattern.CASE_INSENSITIVE);
     public static final Pattern STEPPER_SEQUENCE_NAME_PATTERN = Pattern.compile("^([^:]+)(?::?)", Pattern.CASE_INSENSITIVE);
     public static final Pattern VARIABLE_LIST_PATTERN = Pattern.compile("[^:]+(:\\s*(?<variables>.+))?", Pattern.CASE_INSENSITIVE);
     public static final Pattern VARIABLE_PATTERN = Pattern.compile("(?<key>[^=]+)=(?<value>[^;]+);?", Pattern.CASE_INSENSITIVE);
+    public static final Pattern SINGLE_VARIABLE_PATTERN = Pattern.compile("(?<key>[^=]+)=(?<value>.*)", Pattern.CASE_INSENSITIVE);
 
     public MessageProcessor(SequenceManager sequenceManager, Preferences preferences){
         this.sequenceManager = sequenceManager;
@@ -67,7 +71,10 @@ public class MessageProcessor implements IHttpListener {
 
             if(messageIsRequest){
                 byte[] request = messageInfo.getRequest();
-                System.out.println("Request: " + messageInfo.getRequest());
+
+                // Extract variable headers from request
+                Map<String, String> sequenceArguments = extractSequenceArgumentsFromRequest(requestInfo, EXECUTE_VAR_HEADER_PATTERN);
+
                 List<RequestSequenceInformation> preExecSequences = extractExecSequencesFromRequest(requestInfo, EXECUTE_BEFORE_HEADER_PATTERN);
                 if(preExecSequences.size() > 0){
                     //Remove the headers from the request
@@ -77,6 +84,13 @@ public class MessageProcessor implements IHttpListener {
                     for (RequestSequenceInformation requestSequenceInformation : preExecSequences) {
                         StepSequenceState sequence = requestSequenceInformation.sequence;
                         Map<String, String> variables = requestSequenceInformation.variables;
+
+                        // Merge arguments from variable headers into arguments for this sequence
+                        // Prioritize arguments specifically set for this sequence
+                        for (Map.Entry<String, String> entry : sequenceArguments.entrySet()) {
+                            variables.putIfAbsent(entry.getKey(), entry.getValue());
+                        }
+
                         StepSequenceExecutor.execute(sequence, variables, false);
                     }
                 }
@@ -294,6 +308,48 @@ public class MessageProcessor implements IHttpListener {
         }
 
         return Optional.of(nameMatcher.group(1).trim());
+    }
+
+    /**
+     * Extract arguments from variable headers from the given request.
+     * @param requestInfo The request
+     * @param pattern Pattern used to identify variable header
+     * @return Map of all sequence arguments
+     */
+    private Map<String, String> extractSequenceArgumentsFromRequest(IRequestInfo requestInfo, Pattern pattern) {
+        Stepper.callbacks.printOutput("[MessageProcessor] extract arguments");        
+        //Check if headers ask us to execute a request before the request.
+        List<String> requestHeaders = requestInfo.getHeaders();
+        Map<String, String> arguments = new HashMap<>();
+
+        for (Iterator<String> iterator = requestHeaders.iterator(); iterator.hasNext(); ) {
+            String header = iterator.next();
+            Stepper.callbacks.printOutput("[MessageProcessor] processing header: " + header);
+
+            Matcher m = pattern.matcher(header);
+            if (!m.matches()) {
+                continue;
+            }
+
+            String variableInfo = m.group(1).trim();
+
+            Stepper.callbacks.printOutput("[MessageProcessor] processing variable info: " + variableInfo);
+
+            Matcher argumentMatcher = SINGLE_VARIABLE_PATTERN.matcher(variableInfo);
+            if (!argumentMatcher.matches()) {
+                Stepper.callbacks.printOutput("[MessageProcessor] found variable header without value");
+                continue;
+            }
+
+            String variableKey = argumentMatcher.group("key");
+            String variableValue = argumentMatcher.group("value");
+
+            Stepper.callbacks.printOutput("[MessageProcessor] got argument: " + variableKey + "=" + variableValue);
+
+            arguments.put(variableKey, variableValue);
+        }
+
+        return arguments;
     }
 
     /**
