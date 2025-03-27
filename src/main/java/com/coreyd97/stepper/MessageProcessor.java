@@ -10,6 +10,8 @@ import com.coreyd97.stepper.sequencemanager.SequenceManager;
 import com.coreyd97.stepper.util.ReplacingInputStream;
 import com.coreyd97.stepper.variable.PreExecutionStepVariable;
 import com.coreyd97.stepper.variable.StepVariable;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import javax.swing.*;
 import java.io.ByteArrayInputStream;
@@ -101,25 +103,28 @@ public class MessageProcessor implements IHttpListener {
                     //Remove the headers from the request
                     request = removeHeaderMatchingPattern(request, EXECUTE_AFTER_HEADER_PATTERN);
 
+                    HashMap<String, Map<String, String>> allSequences = new HashMap<>();
+
                     //Joining the sequences as string to set them as a comment to catch them in the response
                     String postExecSequencesJoined = EXECUTE_AFTER_HEADER + ":";
                     for (RequestSequenceInformation requestSequenceInformation : postExecSequences) {
                         StepSequenceState sequence = requestSequenceInformation.sequence;
                         Map<String, String> variables = requestSequenceInformation.variables;
-                        String variableString = "";
-                        if (variables.size() > 0) {
-                            variableString += ":";
-                            for (Map.Entry<String, String> entry : variables.entrySet()) {
-                                variableString += entry.getKey() + "=";
-                                variableString += entry.getValue() + ";";
-                            }
+
+                        // Merge arguments from variable headers into arguments for this sequence
+                        // Prioritize arguments specifically set for this sequence
+                        for (Map.Entry<String, String> entry : sequenceArguments.entrySet()) {
+                            variables.putIfAbsent(entry.getKey(), entry.getValue());
                         }
 
-                        postExecSequencesJoined += sequence.getTitle() + variableString + EXECUTE_AFTER_COMMENT_DELIMITER;
+                        allSequences.put(sequence.getTitle(), variables);
                     }
 
+                    Gson gson = new Gson();
+                    String serializedSequences = gson.toJson(allSequences);
+
                     if(!postExecSequencesJoined.isEmpty()){
-                        messageInfo.setComment(messageInfo.getComment() + postExecSequencesJoined);
+                        messageInfo.setComment(messageInfo.getComment() + EXECUTE_AFTER_HEADER + ":" + serializedSequences);
                     }
                 }
 
@@ -411,28 +416,24 @@ public class MessageProcessor implements IHttpListener {
         ArrayList<RequestSequenceInformation> execSequences = new ArrayList<>();
         Matcher m = pattern.matcher(comment);
         if (m.find()) {
-            String[] allSequences = m.group(1).split(EXECUTE_AFTER_COMMENT_DELIMITER);
-            for(String sequenceInfo : allSequences){
-                if(sequenceInfo != null && !sequenceInfo.isEmpty()){
-                    Optional<String> optionalName = this.extractSequenceNameFromSequenceInfoString(sequenceInfo);
+            String allSequencesSerialized = m.group(1);
+            Gson gson = new Gson();
+            TypeToken<HashMap<String, HashMap<String, String>>> mapType = new TypeToken<HashMap<String, HashMap<String, String>>>(){};
+            HashMap<String, HashMap<String, String>> allSequences = gson.fromJson(allSequencesSerialized, mapType.getType());
 
-                    if (optionalName.isEmpty()) {
-                        continue;
-                    }
+            for(Map.Entry<String, HashMap<String, String>> entry : allSequences.entrySet()){
+                String sequenceName = entry.getKey();
 
-                    String sequenceName = optionalName.get();
+                Optional<StepSequenceState> execSequence = sequenceManager.getStepSequenceStates().stream()
+                        .filter(sequence -> sequence.getTitle().equalsIgnoreCase(sequenceName))
+                        .findFirst();
 
-                    Optional<StepSequenceState> execSequence = sequenceManager.getStepSequenceStates().stream()
-                            .filter(sequence -> sequence.getTitle().equalsIgnoreCase(sequenceName))
-                            .findFirst();
+                Map<String, String> variables = entry.getValue();
 
-                    Map<String, String> variables = this.extractVariablesFromSequenceInfoString(sequenceInfo);
-
-                    if(execSequence.isPresent())
-                        execSequences.add(new RequestSequenceInformation(execSequence.get(), variables));
-                    else
-                        JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Could not find execution sequence named: \"" + sequenceInfo + "\".");
-                }
+                if(execSequence.isPresent())
+                    execSequences.add(new RequestSequenceInformation(execSequence.get(), variables));
+                else
+                    JOptionPane.showMessageDialog(Stepper.getUI().getUiComponent(), "Could not find execution sequence named: \"" + sequenceName + "\".");
             }
         }
 
