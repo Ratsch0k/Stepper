@@ -110,8 +110,7 @@ public class StepStatePanel extends JPanel implements StepVariableListener {
                 executeStepButton.setEnabled(false);
                 try {
                     StepExecutionable executionable = new StepExecutionable(step, true);
-
-                    executionable.executeStep(new ArrayList<StepVariable>());
+                    executionable.executeStep(step.getSequence().getRollingVariablesUpToStep(step));
                 }catch (SequenceCancelledException ignored){
                 }catch (SequenceExecutionException e) {
                     JOptionPane.showMessageDialog(this, e.getMessage(),
