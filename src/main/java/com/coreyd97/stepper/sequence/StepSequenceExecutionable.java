@@ -61,6 +61,10 @@ public class StepSequenceExecutionable {
             executionableSteps.add(new StepExecutionable(step, this.updateState));
         }
 
+        for (SequenceExecutionListener listener : this.state.getExecutionListeners()) {
+            listener.beforeSequenceStateStart(this.state.steps);
+        }
+
         for (StepExecutionable executionable : executionableSteps) {
             // Insert pre-execution variables into variables passed to step
             for (PreExecutionStepVariable preVariable : executionable.variableManager.getPreExecutionVariables()) {
@@ -75,6 +79,14 @@ public class StepSequenceExecutionable {
             for (StepVariable variable : result.getVariables()) {
                 executionVariables.put(variable.getIdentifier(), variable);
             }
+
+            for (SequenceExecutionListener listener : this.state.getExecutionListeners()) {
+                listener.sequenceStepExecuted(result.getInfo());
+            }
+        }
+
+        for (SequenceExecutionListener listener : this.state.getExecutionListeners()) {
+            listener.afterSequenceEnd(true);
         }
     }
 }

@@ -2,21 +2,17 @@ package com.coreyd97.stepper;
 
 import burp.IExtensionStateListener;
 import com.coreyd97.BurpExtenderUtilities.Preferences;
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 import com.coreyd97.stepper.sequence.listener.SequenceStateListener;
-import com.coreyd97.stepper.sequencemanager.listener.StepSequenceListener;
 import com.coreyd97.stepper.sequencemanager.listener.StepSequenceStateListener;
 import com.coreyd97.stepper.sequencemanager.SequenceManager;
-import com.coreyd97.stepper.step.Step;
 import com.coreyd97.stepper.step.StepState;
-import com.coreyd97.stepper.step.listener.StepListener;
 import com.coreyd97.stepper.variable.StepVariable;
 import com.coreyd97.stepper.variable.listener.StepVariableListener;
 
 import java.util.ArrayList;
 
-public class StateManager implements StepSequenceListener, StepListener, StepVariableListener, IExtensionStateListener, StepSequenceStateListener, SequenceStateListener {
+public class StateManager implements StepVariableListener, IExtensionStateListener, StepSequenceStateListener, SequenceStateListener {
 
     private SequenceManager sequenceManager;
     private Preferences preferences;
@@ -31,43 +27,12 @@ public class StateManager implements StepSequenceListener, StepListener, StepVar
     }
 
     public void loadSavedSequences(){
-        ArrayList<StepSequence> stepSequences = this.preferences.getSetting(Globals.PREF_STEP_SEQUENCES);
+        ArrayList<StepSequenceState> stepSequences = this.preferences.getSetting(Globals.PREF_STEP_SEQUENCES);
         if(stepSequences != null) {
-            for (StepSequence stepSequence : stepSequences) {
+            for (StepSequenceState stepSequence : stepSequences) {
                 this.sequenceManager.addStepSequence(stepSequence);
             }
         }
-    }
-
-    @Override
-    public void onStepSequenceAdded(StepSequence sequence) {
-        sequence.addStepListener(this);
-        sequence.getGlobalVariableManager().addVariableListener(this);
-        saveCurrentSequences();
-    }
-
-    @Override
-    public void onStepUpdated(Step step) {
-        saveCurrentSequences();
-    }
-
-    @Override
-    public void onStepSequenceRemoved(StepSequence sequence) {
-        sequence.removeStepListener(this);
-        sequence.getGlobalVariableManager().removeVariableListener(this);
-        saveCurrentSequences();
-    }
-
-    @Override
-    public void onStepAdded(Step step) {
-        saveCurrentSequences();
-        step.getVariableManager().addVariableListener(this);
-    }
-
-    @Override
-    public void onStepRemoved(Step step) {
-        step.getVariableManager().removeVariableListener(this);
-        saveCurrentSequences();
     }
 
     @Override

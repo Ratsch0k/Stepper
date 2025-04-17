@@ -141,6 +141,10 @@ public class StepSequenceState {
         return sequenceListeners;
     }
 
+    public List<SequenceExecutionListener> getExecutionListeners() {
+        return this.sequenceExecutionListeners;
+    }
+
     public String getTitle() {
         return title;
     }
