@@ -6,10 +6,10 @@ import com.coreyd97.BurpExtenderUtilities.ILogProvider;
 import com.coreyd97.BurpExtenderUtilities.PreferenceFactory;
 import com.coreyd97.BurpExtenderUtilities.Preferences;
 import com.coreyd97.stepper.Globals;
-import com.coreyd97.stepper.sequence.StepSequence;
-import com.coreyd97.stepper.sequence.serializer.StepSequenceSerializer;
-import com.coreyd97.stepper.step.Step;
-import com.coreyd97.stepper.step.serializer.StepSerializer;
+import com.coreyd97.stepper.sequence.StepSequenceState;
+import com.coreyd97.stepper.sequence.serializer.StepSequenceStateSerializer;
+import com.coreyd97.stepper.step.StepState;
+import com.coreyd97.stepper.step.serializer.StepStateSerializer;
 import com.coreyd97.stepper.variable.PromptVariable;
 import com.coreyd97.stepper.variable.RegexVariable;
 import com.coreyd97.stepper.variable.StepVariable;
@@ -43,8 +43,8 @@ public class StepperPreferenceFactory extends PreferenceFactory {
 
     @Override
     protected void registerTypeAdapters() {
-        gsonProvider.registerTypeAdapter(new TypeToken<StepSequence>(){}.getType(), new StepSequenceSerializer());
-        gsonProvider.registerTypeAdapter(new TypeToken<Step>(){}.getType(), new StepSerializer());
+        gsonProvider.registerTypeAdapter(new TypeToken<StepSequenceState>(){}.getType(), new StepSequenceStateSerializer());
+        gsonProvider.registerTypeAdapter(new TypeToken<StepState>(){}.getType(), new StepStateSerializer());
         gsonProvider.registerTypeAdapter(new TypeToken<StepVariable>(){}.getType(), new VariableSerializer());
         gsonProvider.registerTypeAdapter(new TypeToken<PromptVariable>(){}.getType(), new PromptVariableSerializer());
         gsonProvider.registerTypeAdapter(new TypeToken<RegexVariable>(){}.getType(), new RegexVariableSerializer());
@@ -52,7 +52,7 @@ public class StepperPreferenceFactory extends PreferenceFactory {
 
     @Override
     protected void registerSettings() {
-        prefs.registerSetting(Globals.PREF_STEP_SEQUENCES, new TypeToken<ArrayList<StepSequence>>(){}.getType(), Preferences.Visibility.PROJECT);
+        prefs.registerSetting(Globals.PREF_STEP_SEQUENCES, new TypeToken<ArrayList<StepSequenceState>>(){}.getType(), Preferences.Visibility.PROJECT);
         prefs.registerSetting(Globals.PREF_PREV_VERSION, String.class, Globals.VERSION, Preferences.Visibility.GLOBAL);
         prefs.registerSetting(Globals.PREF_VARS_IN_ALL_TOOLS, Boolean.class, true, Preferences.Visibility.GLOBAL);
         prefs.registerSetting(Globals.PREF_VARS_IN_EXTENDER, Boolean.class, true, Preferences.Visibility.GLOBAL);

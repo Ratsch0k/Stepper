@@ -6,7 +6,7 @@ import com.coreyd97.BurpExtenderUtilities.PanelBuilder;
 import com.coreyd97.BurpExtenderUtilities.Preferences;
 import com.coreyd97.stepper.Globals;
 import com.coreyd97.stepper.Stepper;
-import com.coreyd97.stepper.sequence.StepSequence;
+import com.coreyd97.stepper.sequence.StepSequenceState;
 import com.coreyd97.stepper.sequencemanager.SequenceManager;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -115,8 +115,6 @@ public class OptionsPanel extends JPanel {
             }
         }));
 
-        // TODO: Re-enable export
-        /* 
         ComponentGroup exportGroup = new ComponentGroup(ComponentGroup.Orientation.VERTICAL, "Export Sequences");
         exportGroup.add(new JButton(new AbstractAction("Export Sequences To File") {
             @Override
@@ -143,7 +141,7 @@ public class OptionsPanel extends JPanel {
         exportGroup.add(new JButton(new AbstractAction("Export Sequences As String") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String sequencesJson = exportSequencesAsString(sequenceManager.getSequences(), true);
+                String sequencesJson = exportSequencesAsString(sequenceManager.getStepSequenceStates(), true);
                 if(sequencesJson == null || sequencesJson.length() == 0) return;
                 JTextArea selectionArea = new JTextArea();
                 selectionArea.setWrapStyleWord(true);
@@ -167,7 +165,6 @@ public class OptionsPanel extends JPanel {
                                                                 
         panelBuilder.setAlignment(Alignment.TOPMIDDLE);
         this.add(panelBuilder.build());
-        */
     }
 
     /**
@@ -176,9 +173,9 @@ public class OptionsPanel extends JPanel {
      */
     private void importSequencesFromString(String sequencesJson, boolean displaySelectionDialog){
         Gson gson = Stepper.getGsonProvider().getGson();
-        ArrayList<StepSequence> allSequences = null;
+        ArrayList<StepSequenceState> allSequences = null;
         try{
-            allSequences = gson.fromJson(sequencesJson, new TypeToken<ArrayList<StepSequence>>(){}.getType());
+            allSequences = gson.fromJson(sequencesJson, new TypeToken<ArrayList<StepSequenceState>>(){}.getType());
         }catch (Exception e){
             //TODO Error handling
             e.printStackTrace();
@@ -190,7 +187,7 @@ public class OptionsPanel extends JPanel {
             return;
         }
 
-        List<StepSequence> selectedSequences;
+        List<StepSequenceState> selectedSequences;
         if(displaySelectionDialog){
             SequenceSelectionDialog dialog = new SequenceSelectionDialog(
                     (Frame) SwingUtilities.getWindowAncestor(this), "Import Sequences", allSequences);
@@ -199,7 +196,7 @@ public class OptionsPanel extends JPanel {
             selectedSequences = allSequences;
         }
 
-        for (StepSequence selectedSequence : selectedSequences) {
+        for (StepSequenceState selectedSequence : selectedSequences) {
             this.sequenceManager.addStepSequence(selectedSequence);
         }
 
@@ -209,8 +206,8 @@ public class OptionsPanel extends JPanel {
      * Show selection dialog for which sequences to export and output results as string.
      * @return
      */
-    private String exportSequencesAsString(List<StepSequence> sequences, boolean displaySelectionDialog){
-        List<StepSequence> selectedSequences;
+    private String exportSequencesAsString(List<StepSequenceState> sequences, boolean displaySelectionDialog){
+        List<StepSequenceState> selectedSequences;
         if(displaySelectionDialog){
             SequenceSelectionDialog dialog = new SequenceSelectionDialog(
                     (Frame) SwingUtilities.getWindowAncestor(this), "Export Sequences", sequences);
@@ -222,7 +219,7 @@ public class OptionsPanel extends JPanel {
         if(selectedSequences == null) return "";
 
         Gson gson = Stepper.getGsonProvider().getGson();
-        return gson.toJson(selectedSequences, new TypeToken<ArrayList<StepSequence>>(){}.getType());
+        return gson.toJson(selectedSequences, new TypeToken<ArrayList<StepSequenceState>>(){}.getType());
     }
 
 

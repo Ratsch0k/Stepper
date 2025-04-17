@@ -25,7 +25,7 @@ public class StepState implements IMessageEditorController {
     private final String matchHack = ("MATCHHACK." + Math.random() + ".coreyd97.com");
     private StepExecutionInfo lastExecutionInfo;
     private Set<StepStateChangeListener> listeners;
-    private final StepSequenceState sequence;
+    private StepSequenceState sequence;
 
     public StepState(StepSequenceState sequence){
         this.variableManager = new StepStateVariableManager(this);
@@ -58,6 +58,10 @@ public class StepState implements IMessageEditorController {
             this.responseEditor.setMessage(responseBody, false);
         }
 
+    }
+
+    public void setSequenceState(StepSequenceState sequence) {
+        this.sequence = sequence;
     }
 
     public StepStateVariableManager getVariableManager() {

@@ -1,6 +1,6 @@
 package com.coreyd97.stepper.preferences.view;
 
-import com.coreyd97.stepper.sequence.StepSequence;
+import com.coreyd97.stepper.sequence.StepSequenceState;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -12,22 +12,22 @@ public class SequenceSelectionTable extends JTable {
 
     private final SequenceSelectionTableModel model;
 
-    public SequenceSelectionTable(List<StepSequence> sequences){
+    public SequenceSelectionTable(List<StepSequenceState> sequences){
         this.model = new SequenceSelectionTableModel(sequences);
         this.setModel(this.model);
     }
 
-    public List<StepSequence> getSelectedSequences(){
+    public List<StepSequenceState> getSelectedSequences(){
         return this.model.getSelectedSequences();
     }
 
     private class SequenceSelectionTableModel extends DefaultTableModel {
 
-        private final List<StepSequence> sequences;
+        private final List<StepSequenceState> sequences;
         private final boolean[] sequenceIsSelected;
         private final String[] COLUMN_NAMES = new String[]{"", "Name", "Steps", "Variables"};
 
-        SequenceSelectionTableModel(List<StepSequence> sequences){
+        SequenceSelectionTableModel(List<StepSequenceState> sequences){
             this.sequences = sequences;
             this.sequenceIsSelected = new boolean[sequences.size()];
             Arrays.fill(this.sequenceIsSelected, true);
@@ -70,7 +70,7 @@ public class SequenceSelectionTable extends JTable {
 
         @Override
         public Object getValueAt(int row, int col) {
-            StepSequence sequence = sequences.get(row);
+            StepSequenceState sequence = sequences.get(row);
             switch (col){
                 case 0: {
                     return sequenceIsSelected[row];
@@ -88,8 +88,8 @@ public class SequenceSelectionTable extends JTable {
             return "";
         }
 
-        private List<StepSequence> getSelectedSequences(){
-            List<StepSequence> selected = new ArrayList<>();
+        private List<StepSequenceState> getSelectedSequences(){
+            List<StepSequenceState> selected = new ArrayList<>();
             for (int i = 0; i < this.sequenceIsSelected.length; i++) {
                 if(this.sequenceIsSelected[i]){
                     selected.add(this.sequences.get(i));

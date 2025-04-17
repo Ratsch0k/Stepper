@@ -3,6 +3,7 @@ package com.coreyd97.stepper.step.serializer;
 import com.coreyd97.stepper.variable.RegexVariable;
 import com.coreyd97.stepper.variable.StepVariable;
 import com.coreyd97.stepper.step.Step;
+import com.coreyd97.stepper.step.StepState;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 
@@ -10,12 +11,12 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Vector;
 
-public class StepSerializer implements JsonSerializer<Step>, JsonDeserializer<Step> {
+public class StepStateSerializer implements JsonSerializer<StepState>, JsonDeserializer<StepState> {
 
     @Override
-    public Step deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public StepState deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         JsonObject jsonObject = json.getAsJsonObject();
-        Step step = new Step();
+        StepState step = new StepState(null);
         step.setTitle(jsonObject.has("title") ? jsonObject.get("title").getAsString() : "Unnamed Step");
         step.setHostname(jsonObject.get("host") != null ? jsonObject.get("host").getAsString() : "" );
         step.setPort(jsonObject.get("port") != null ? jsonObject.get("port").getAsInt() : 443 );
@@ -30,7 +31,7 @@ public class StepSerializer implements JsonSerializer<Step>, JsonDeserializer<St
     }
 
     @Override
-    public JsonElement serialize(Step src, Type typeOfSrc, JsonSerializationContext context) {
+    public JsonElement serialize(StepState src, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject json = new JsonObject();
         json.addProperty("title", src.getTitle());
         json.addProperty("host", src.getHostname());

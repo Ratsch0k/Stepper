@@ -1,6 +1,6 @@
 package com.coreyd97.stepper.preferences.view;
 
-import com.coreyd97.stepper.sequence.StepSequence;
+import com.coreyd97.stepper.sequence.StepSequenceState;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,11 +8,11 @@ import java.util.List;
 
 public class SequenceSelectionDialog extends JDialog {
 
-    private final List<StepSequence> allSequences;
-    private List<StepSequence> selectedSequences;
+    private final List<StepSequenceState> allSequences;
+    private List<StepSequenceState> selectedSequences;
     private SequenceSelectionTable sequenceSelectionTable;
 
-    public SequenceSelectionDialog(Frame owner, String title, List<StepSequence> sequences){
+    public SequenceSelectionDialog(Frame owner, String title, List<StepSequenceState> sequences){
         super(owner, title, true);
         this.allSequences = sequences;
 
@@ -60,7 +60,7 @@ public class SequenceSelectionDialog extends JDialog {
         this.add(wrapper);
     }
 
-    public List<StepSequence> run(){
+    public List<StepSequenceState> run(){
         this.setVisible(true);
         return this.selectedSequences;
     }
