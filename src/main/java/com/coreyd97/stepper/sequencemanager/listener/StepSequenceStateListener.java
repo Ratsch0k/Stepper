@@ -1,6 +1,5 @@
 package com.coreyd97.stepper.sequencemanager.listener;
 
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 
 public interface StepSequenceStateListener {

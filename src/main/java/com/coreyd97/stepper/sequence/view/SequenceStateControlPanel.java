@@ -1,11 +1,9 @@
 package com.coreyd97.stepper.sequence.view;
 
 import com.coreyd97.stepper.sequence.listener.SequenceExecutionListener;
-import com.coreyd97.stepper.step.Step;
 import com.coreyd97.stepper.step.StepExecutionInfo;
 import com.coreyd97.stepper.step.StepState;
 import com.coreyd97.stepper.StepSequenceExecutor;
-import com.coreyd97.stepper.Stepper;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 
 import javax.swing.*;
@@ -63,11 +61,5 @@ public class SequenceStateControlPanel extends JPanel implements SequenceExecuti
         this.cancelButton.setEnabled(false);
         this.executeButton.setEnabled(true);
         this.executeButton.setText("Execute Sequence");
-    }
-
-    @Override
-    public void beforeSequenceStart(List<Step> steps) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'beforeSequenceStart'");
     }
 }

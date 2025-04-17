@@ -7,27 +7,20 @@ import com.coreyd97.stepper.StepStateChangeListener;
 import com.coreyd97.stepper.Stepper;
 import com.coreyd97.stepper.exception.SequenceCancelledException;
 import com.coreyd97.stepper.exception.SequenceExecutionException;
-import com.coreyd97.stepper.sequence.view.SequenceContainer;
 import com.coreyd97.stepper.sequence.view.SequenceStateContainer;
-import com.coreyd97.stepper.step.Step;
 import com.coreyd97.stepper.step.StepExecutionInfo;
 import com.coreyd97.stepper.step.StepExecutionable;
 import com.coreyd97.stepper.step.StepState;
-import com.coreyd97.stepper.step.listener.StepExecutionAdapter;
 import com.coreyd97.stepper.util.Utils;
 import com.coreyd97.stepper.variable.StepVariable;
 import com.coreyd97.stepper.variable.listener.StepVariableListener;
 import com.formdev.flatlaf.FlatLaf;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.net.URL;
 import java.util.ArrayList;
 
 public class StepStatePanel extends JPanel implements StepVariableListener {

@@ -4,10 +4,7 @@ import burp.IMessageEditorController;
 import burp.IMessageEditorTab;
 import burp.IMessageEditorTabFactory;
 import com.coreyd97.stepper.sequencemanager.SequenceManager;
-import com.coreyd97.stepper.step.Step;
 import com.coreyd97.stepper.step.StepState;
-import com.coreyd97.stepper.Stepper;
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 
 import java.util.Arrays;
@@ -25,7 +22,7 @@ public class VariableReplacementsTabFactory implements IMessageEditorTabFactory 
     public IMessageEditorTab createNewInstance(IMessageEditorController controllerProxyInstance, boolean editable) {
         VariableReplacementsTab tab = new VariableReplacementsTab(sequenceManager, controllerProxyInstance, editable);
         IMessageEditorController actualController = findActualController(controllerProxyInstance);
-        if(actualController instanceof Step) {
+        if(actualController instanceof StepState) {
             tab.setStep((StepState) actualController);
         }
         return tab;

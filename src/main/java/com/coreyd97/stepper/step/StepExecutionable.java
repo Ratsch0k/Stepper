@@ -12,7 +12,6 @@ import com.coreyd97.stepper.Globals;
 import com.coreyd97.stepper.MessageProcessor;
 import com.coreyd97.stepper.Stepper;
 import com.coreyd97.stepper.exception.SequenceExecutionException;
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 import com.coreyd97.stepper.step.listener.StepExecutionListener;
 import com.coreyd97.stepper.variable.StepVariable;

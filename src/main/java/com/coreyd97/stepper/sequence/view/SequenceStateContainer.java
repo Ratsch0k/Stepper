@@ -1,13 +1,9 @@
 package com.coreyd97.stepper.sequence.view;
 
 import com.coreyd97.BurpExtenderUtilities.CustomTabComponent;
-import com.coreyd97.stepper.Stepper;
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 import com.coreyd97.stepper.sequence.listener.SequenceStateListener;
-import com.coreyd97.stepper.step.Step;
 import com.coreyd97.stepper.step.StepState;
-import com.coreyd97.stepper.step.listener.StepAdapter;
 import com.coreyd97.stepper.step.view.StepStatePanel;
 
 import javax.swing.*;

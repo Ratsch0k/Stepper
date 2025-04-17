@@ -1,9 +1,7 @@
 package com.coreyd97.stepper.variable;
 
 import com.coreyd97.stepper.Stepper;
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceState;
-import com.coreyd97.stepper.step.Step;
 import com.coreyd97.stepper.step.StepExecutionInfo;
 
 import javax.swing.*;
@@ -74,10 +72,6 @@ public abstract class StepVariable {
 
     public static Pattern createIdentifierPattern(StepVariable stepVariable){
         return createIdentifierPattern(stepVariable.getIdentifier());
-    }
-
-    public static Pattern createIdentifierPatternWithSequence(StepSequence sequence, StepVariable variable){
-        return createIdentifierPatternWithSequence(sequence.getTitle(), variable.getIdentifier());
     }
 
     public static Pattern createIdentifierPatternWithSequence(StepSequenceState sequence, StepVariable variable){

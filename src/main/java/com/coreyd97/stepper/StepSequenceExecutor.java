@@ -4,15 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.coreyd97.stepper.exception.SequenceExecutionException;
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceExecutionable;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 
 public class StepSequenceExecutor {
-    public static void execute(StepSequence sequence, Map<String, String> variables) {
-        StepSequence executionCopy = sequence.copy();        executionCopy.executeBlocking(variables);
-    }
-
     public static void execute(StepSequenceState sequence) {
         StepSequenceExecutor.execute(sequence, new HashMap<>(), false);
     }

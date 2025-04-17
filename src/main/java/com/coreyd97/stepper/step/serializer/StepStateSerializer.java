@@ -1,15 +1,12 @@
 package com.coreyd97.stepper.step.serializer;
 
-import com.coreyd97.stepper.variable.RegexVariable;
 import com.coreyd97.stepper.variable.StepVariable;
-import com.coreyd97.stepper.step.Step;
 import com.coreyd97.stepper.step.StepState;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Vector;
 
 public class StepStateSerializer implements JsonSerializer<StepState>, JsonDeserializer<StepState> {
 

@@ -1,9 +1,6 @@
 package com.coreyd97.stepper.sequencemanager;
 
-import com.coreyd97.stepper.Stepper;
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceState;
-import com.coreyd97.stepper.sequencemanager.listener.StepSequenceListener;
 import com.coreyd97.stepper.sequencemanager.listener.StepSequenceStateListener;
 import com.coreyd97.stepper.variable.StepVariable;
 
@@ -12,39 +9,12 @@ import java.util.HashMap;
 import java.util.List;
 
 public class SequenceManager {
-
-    private final List<StepSequence> sequences;
-    private final List<StepSequenceListener> sequenceListeners;
     private final List<StepSequenceState> sequenceStates;
     private final List<StepSequenceStateListener> sequenceStateListeners;
 
     public SequenceManager(){
-        this.sequences = new ArrayList<>();
-        this.sequenceListeners = new ArrayList<>();
         this.sequenceStates = new ArrayList<>();
         this.sequenceStateListeners = new ArrayList<>();
-    }
-
-    public void addStepSequence(StepSequence sequence){
-        this.sequences.add(sequence);
-        for (StepSequenceListener stepSequenceListener : this.sequenceListeners) {
-            try {
-                stepSequenceListener.onStepSequenceAdded(sequence);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void removeStepSequence(StepSequence sequence){
-        this.sequences.remove(sequence);
-        for (StepSequenceListener stepSequenceListener : sequenceListeners) {
-            try {
-                stepSequenceListener.onStepSequenceRemoved(sequence);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        }
     }
 
     public void addStepSequence(StepSequenceState sequence) {
@@ -56,8 +26,6 @@ public class SequenceManager {
                 e.printStackTrace();
             }
         }
-
-        //this.addStepSequence(sequence.sequence);
     }
 
     public void removeStepSequence(StepSequenceState sequence) {
@@ -69,19 +37,10 @@ public class SequenceManager {
                 e.printStackTrace();
             }
         }
-        //this.removeStepSequence(sequence.sequence);
-    }
-
-    public void addStepSequenceListener(StepSequenceListener listener){
-        this.sequenceListeners.add(listener);
     }
 
     public void addStepSequenceListener(StepSequenceStateListener listener){
         this.sequenceStateListeners.add(listener);
-    }
-
-    public void removeStepSequenceListener(StepSequenceListener listener){
-        this.sequenceListeners.remove(listener);
     }
 
     public void removeStepSequenceListener(StepSequenceStateListener listener){

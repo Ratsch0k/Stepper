@@ -3,13 +3,8 @@ package com.coreyd97.stepper;
 import burp.IContextMenuFactory;
 import burp.IContextMenuInvocation;
 import burp.IHttpRequestResponse;
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 import com.coreyd97.stepper.sequencemanager.SequenceManager;
-import com.coreyd97.stepper.step.Step;
-import com.coreyd97.stepper.step.view.StepStatePanel;
-import com.coreyd97.stepper.sequence.view.StepSequenceStateTab;
-import com.coreyd97.stepper.sequence.view.StepSequenceTab;
 import com.coreyd97.stepper.variable.StepVariable;
 
 import javax.swing.*;
@@ -17,7 +12,6 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ContextMenuFactory implements IContextMenuFactory {
 
@@ -166,7 +160,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
     }
         */
 
-    private List<JMenuItem> buildAddVariableToClipboardMenuItems(StepSequence sequence, Collection<StepVariable> variables){
+    private List<JMenuItem> buildAddVariableToClipboardMenuItems(StepSequenceState sequence, Collection<StepVariable> variables){
         List<JMenuItem> menuItems = new ArrayList<>();
         for (StepVariable variable : variables) {
             JMenuItem item = new JMenuItem(variable.getIdentifier());

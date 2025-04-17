@@ -2,7 +2,6 @@ package com.coreyd97.stepper;
 
 import java.util.Map;
 
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 
 /**

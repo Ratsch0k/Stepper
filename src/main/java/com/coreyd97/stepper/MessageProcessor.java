@@ -4,7 +4,6 @@ import burp.*;
 
 import com.coreyd97.BurpExtenderUtilities.Preferences;
 import com.coreyd97.stepper.sequence.StepSequenceState;
-import com.coreyd97.stepper.sequence.view.StepSequenceTab;
 import com.coreyd97.stepper.sequencemanager.SequenceManager;
 import com.coreyd97.stepper.util.ReplacingInputStream;
 import com.coreyd97.stepper.variable.PreExecutionStepVariable;

@@ -6,10 +6,8 @@ import com.coreyd97.BurpExtenderUtilities.PopOutPanel;
 import com.coreyd97.stepper.sequencemanager.listener.StepSequenceStateListener;
 import com.coreyd97.stepper.about.view.AboutPanel;
 import com.coreyd97.stepper.preferences.view.OptionsPanel;
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 import com.coreyd97.stepper.sequence.view.StepSequenceStateTab;
-import com.coreyd97.stepper.sequence.view.StepSequenceTab;
 import com.coreyd97.stepper.sequencemanager.SequenceManager;
 
 import javax.swing.*;
@@ -24,13 +22,11 @@ public class StepperUI implements ITab {
     private final SequenceManager sequenceManager;
     private final JTabbedPane tabbedPane;
     private final PopOutPanel popOutPanel;
-    private final HashMap<StepSequence, StepSequenceTab> managerTabMap;
     private final HashMap<StepSequenceState, StepSequenceStateTab> sequenceTabMap;
 
     public StepperUI(SequenceManager sequenceManager){
         this.sequenceManager = sequenceManager;
         this.sequenceTabMap = new HashMap<>();
-        this.managerTabMap = new HashMap<>();
 
         this.tabbedPane = new JTabbedPane();
         CustomTabComponent addSequenceTabComponent = new CustomTabComponent( "Add Sequence");
@@ -108,10 +104,6 @@ public class StepperUI implements ITab {
             //If we removed the rightmost tab, but still have other tabs, move to a different tab instead
             this.tabbedPane.setSelectedIndex(removedIndex-1);
         }
-    }
-
-    public StepSequenceTab getTabForStepManager(StepSequence manager){
-        return this.managerTabMap.get(manager);
     }
 
     public StepSequenceStateTab getTabForStepStateManager(StepSequenceState manager) {

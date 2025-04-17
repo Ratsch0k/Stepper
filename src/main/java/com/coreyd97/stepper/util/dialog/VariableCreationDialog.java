@@ -1,13 +1,11 @@
 package com.coreyd97.stepper.util.dialog;
 
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.variable.PromptVariable;
 import com.coreyd97.stepper.variable.RegexVariable;
 import com.coreyd97.stepper.variable.StepVariable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 import java.util.UUID;
 
 public class VariableCreationDialog extends JDialog {

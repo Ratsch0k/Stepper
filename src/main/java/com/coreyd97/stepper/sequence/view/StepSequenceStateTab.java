@@ -3,7 +3,6 @@ package com.coreyd97.stepper.sequence.view;
 import com.coreyd97.stepper.Globals;
 import com.coreyd97.stepper.StepSequenceExecutor;
 import com.coreyd97.stepper.Stepper;
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 import com.coreyd97.stepper.step.view.StepStatePanel;
 

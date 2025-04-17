@@ -1,6 +1,5 @@
 package com.coreyd97.stepper.sequence.view;
 
-import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 import com.coreyd97.stepper.variable.VariableManager;
 

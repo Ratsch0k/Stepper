@@ -2,23 +2,13 @@ package com.coreyd97.stepper.sequence;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import javax.swing.JOptionPane;
-
-import com.coreyd97.stepper.Stepper;
-import com.coreyd97.stepper.exception.SequenceCancelledException;
 import com.coreyd97.stepper.exception.SequenceExecutionException;
 import com.coreyd97.stepper.sequence.listener.SequenceExecutionListener;
-import com.coreyd97.stepper.sequence.view.SequenceContainer;
-import com.coreyd97.stepper.sequence.view.StepSequenceTab;
-import com.coreyd97.stepper.step.Step;
-import com.coreyd97.stepper.step.StepExecutionInfo;
 import com.coreyd97.stepper.step.StepExecutionResult;
 import com.coreyd97.stepper.step.StepExecutionable;
 import com.coreyd97.stepper.step.StepState;
-import com.coreyd97.stepper.step.view.StepStatePanel;
 import com.coreyd97.stepper.variable.PreExecutionStepVariable;
 import com.coreyd97.stepper.variable.StepVariable;
 import com.coreyd97.stepper.variable.VariableManager;
@@ -26,12 +16,10 @@ import com.coreyd97.stepper.variable.VariableManager;
 public class StepSequenceExecutionable {
     private StepSequenceState state;
     private boolean updateState;
-    private VariableManager globalVariablesManager;
 
     public StepSequenceExecutionable(StepSequenceState state, boolean updateState) {
         this.state = state;
         this.updateState = updateState;
-        this.globalVariablesManager = new GlobalVariableManager();
     }
 
     /**

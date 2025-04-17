@@ -1,12 +1,8 @@
 package com.coreyd97.stepper.variable;
 
 import com.coreyd97.stepper.Stepper;
-import com.coreyd97.stepper.step.Step;
-import com.coreyd97.stepper.step.StepExecutionInfo;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import java.awt.*;
 import java.util.UUID;
 
 public class PromptVariable extends PreExecutionStepVariable {
