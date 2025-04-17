@@ -14,6 +14,7 @@ import com.coreyd97.stepper.Stepper;
 import com.coreyd97.stepper.exception.SequenceExecutionException;
 import com.coreyd97.stepper.sequence.StepSequenceState;
 import com.coreyd97.stepper.step.listener.StepExecutionListener;
+import com.coreyd97.stepper.variable.PostExecutionStepVariable;
 import com.coreyd97.stepper.variable.StepVariable;
 
 import burp.IHttpRequestResponse;
@@ -37,7 +38,22 @@ public class StepExecutionable {
         }
 
         List<StepVariable> stepVariables = new LinkedList<>(this.variableManager.getVariables());
-        stepVariables.addAll(replacements);
+        
+        // Update step variables with replacements
+        for (StepVariable replacemenVariable : replacements) {
+            boolean hasReplacement = false;
+
+            for (StepVariable stepVariable : stepVariables) {
+                if (stepVariable.getIdentifier().equals(replacemenVariable.getIdentifier())) {
+                    hasReplacement = true;
+                    stepVariable.setValue(replacemenVariable.getValue());
+                }
+            }
+
+            if (!hasReplacement) {
+                stepVariables.add(replacemenVariable);
+            }
+        }
 
         byte[] requestWithoutReplacements = this.state.getRequest();
         byte[] builtRequest;
@@ -64,9 +80,9 @@ public class StepExecutionable {
             for (int sequenceVariableIndex = 0; sequenceVariableIndex < sequenceVariables.size(); sequenceVariableIndex++) {
                 StepVariable sequenceVariable = sequenceVariables.get(sequenceVariableIndex);
 
-                for (StepVariable replacementVariable : replacements) {
-                    if (sequenceVariable.getIdentifier() == replacementVariable.getIdentifier()) {
-                        sequenceVariables.set(sequenceVariableIndex, replacementVariable);
+                for (StepVariable stepVariable : stepVariables) {
+                    if (sequenceVariable.getIdentifier() == stepVariable.getIdentifier()) {
+                        sequenceVariables.set(sequenceVariableIndex, stepVariable);
                     }
                 }
             }
@@ -111,8 +127,17 @@ public class StepExecutionable {
 
         this.lastExecutionInfo = new StepExecutionInfo(requestResponse, end-start);
 
-        //Pull variables from response
+        // Pull variables from response
         this.variableManager.updateVariablesAfterExecution(lastExecutionInfo);
+
+        // Update step variables
+        for (PostExecutionStepVariable variable : this.variableManager.getPostExecutionVariables()) {
+            for (StepVariable stepVariable : stepVariables) {
+                if (stepVariable.getIdentifier() == variable.getIdentifier()) {
+                    stepVariable.setValue(variable.getValue());
+                }
+            }
+        }
 
         // Update step state
         if (this.updateState) {

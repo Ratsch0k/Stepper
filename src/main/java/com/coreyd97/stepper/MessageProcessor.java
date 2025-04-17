@@ -75,6 +75,8 @@ public class MessageProcessor implements IHttpListener {
                 // Extract variable headers from request
                 Map<String, String> sequenceArguments = extractSequenceArgumentsFromRequest(requestInfo, EXECUTE_VAR_HEADER_PATTERN);
 
+                Map<StepSequenceState, Map<String, StepVariable>> sequenceStepVariables = new HashMap<>();
+
                 List<RequestSequenceInformation> preExecSequences = extractExecSequencesFromRequest(requestInfo, EXECUTE_BEFORE_HEADER_PATTERN);
                 if(preExecSequences.size() > 0){
                     //Remove the headers from the request
@@ -91,7 +93,7 @@ public class MessageProcessor implements IHttpListener {
                             variables.putIfAbsent(entry.getKey(), entry.getValue());
                         }
 
-                        StepSequenceExecutor.execute(sequence, variables, false);
+                        sequenceStepVariables.put(sequence, StepSequenceExecutor.execute(sequence, variables, false));
                     }
                 }
 
@@ -128,6 +130,13 @@ public class MessageProcessor implements IHttpListener {
 
 
                 HashMap<StepSequenceState, List<StepVariable>> allVariables = sequenceManager.getRollingVariablesFromAllSequences();
+
+                // Update variables with values from previously executed sequences
+                for (Map.Entry<StepSequenceState, Map<String, StepVariable>> sequenceVariables : sequenceStepVariables.entrySet()) {
+                    allVariables.put(sequenceVariables.getKey(), new LinkedList<>(sequenceVariables.getValue().values()));
+                }
+
+                // Updadte 
 
                 if(allVariables.size() > 0 && hasStepVariable(request)) {
 

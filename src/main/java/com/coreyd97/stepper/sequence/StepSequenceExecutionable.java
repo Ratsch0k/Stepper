@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.coreyd97.stepper.Stepper;
 import com.coreyd97.stepper.exception.SequenceExecutionException;
 import com.coreyd97.stepper.sequence.listener.SequenceExecutionListener;
 import com.coreyd97.stepper.step.StepExecutionResult;
@@ -30,7 +31,7 @@ public class StepSequenceExecutionable {
      * variables from the header or comment, it is still executed with this set of variables.
      * @param arguments Map of global variables
      */
-    public void execute(Map<String, String> arguments) throws SequenceExecutionException {
+    public Map<String, StepVariable> execute(Map<String, String> arguments) throws SequenceExecutionException {
         Map<String, StepVariable> executionVariables = new HashMap<>();
         // Assign variables to global variables
         for (StepVariable variable : this.state.getGlobalVariableManager().getVariables()) {
@@ -59,7 +60,7 @@ public class StepSequenceExecutionable {
                 executionVariables.put(preVariable.getIdentifier(), preVariable);
             }
 
-            // Execute the step            
+            // Execute the step
             StepExecutionResult result = executionable.executeStep(new ArrayList<>(executionVariables.values()));
 
             // Retrieve all variables from step and put them into the variables.
@@ -76,5 +77,7 @@ public class StepSequenceExecutionable {
         for (SequenceExecutionListener listener : this.state.getExecutionListeners()) {
             listener.afterSequenceEnd(true);
         }
+
+        return executionVariables;
     }
 }
