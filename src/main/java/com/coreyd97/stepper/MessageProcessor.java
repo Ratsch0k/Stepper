@@ -93,14 +93,15 @@ public class MessageProcessor implements IHttpListener {
                 HashMap<StepSequence, List<StepVariable>> allVariables = sequenceManager.getRollingVariablesFromAllSequences();
 
                 if(allVariables.size() > 0 && hasStepVariable(request)) {
-
-                    if(isUnprocessable(messageInfo.getRequest())){
+                    if(isUnprocessable(messageInfo.getRequest()) && Stepper.getPreferences().getSetting(Globals.PREF_ENABLE_UNPROCESSABLE_WARNING).equals(true)){
                         //If there's unicode issues, we're likely acting on binary data. Warn the user.
+                        //But only warn user if they did not disable this warning.
+                        //In some cases, especially if Stepper is used together with Param Miner, these warnings can popup often
                         int result = JOptionPane.showConfirmDialog(Stepper.getUI().getUiComponent(),
-                                "The request contains non UTF characters.\nStepper is able to make the replacements, " +
-                                        "but some of the binary data may be lost. Continue?",
-                                "Stepper Replacement Error", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-                        if(result == JOptionPane.NO_OPTION) return;
+                        "The request contains non UTF characters.\nStepper is able to make the replacements, " +
+                                "but some of the binary data may be lost. Continue?",
+                        "Stepper Replacement Error", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                        if(result == JOptionPane.NO_OPTION) return;  
                     }
 
                     try {
