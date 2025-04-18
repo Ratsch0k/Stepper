@@ -15,4 +15,5 @@ public class Globals {
     public static final String PREF_VARS_IN_SPIDER = "enableVarsInSpider";
     public static final String PREF_UPDATE_REQUEST_LENGTH = "updateRequestLength";
     public static final String PREF_ENABLE_SHORTCUT = "enableShortcut";
+    public static final String PREF_ENABLE_UNPROCESSABLE_WARNING = "enableUnprocessableWarning";
 }
