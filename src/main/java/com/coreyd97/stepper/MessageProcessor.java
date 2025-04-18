@@ -315,14 +315,12 @@ public class MessageProcessor implements IHttpListener {
      * @return Map of all sequence arguments
      */
     private Map<String, String> extractSequenceArgumentsFromRequest(IRequestInfo requestInfo, Pattern pattern) {
-        Stepper.callbacks.printOutput("[MessageProcessor] extract arguments");        
         //Check if headers ask us to execute a request before the request.
         List<String> requestHeaders = requestInfo.getHeaders();
         Map<String, String> arguments = new HashMap<>();
 
         for (Iterator<String> iterator = requestHeaders.iterator(); iterator.hasNext(); ) {
             String header = iterator.next();
-            Stepper.callbacks.printOutput("[MessageProcessor] processing header: " + header);
 
             Matcher m = pattern.matcher(header);
             if (!m.matches()) {
@@ -331,18 +329,14 @@ public class MessageProcessor implements IHttpListener {
 
             String variableInfo = m.group(1).trim();
 
-            Stepper.callbacks.printOutput("[MessageProcessor] processing variable info: " + variableInfo);
 
             Matcher argumentMatcher = SINGLE_VARIABLE_PATTERN.matcher(variableInfo);
             if (!argumentMatcher.matches()) {
-                Stepper.callbacks.printOutput("[MessageProcessor] found variable header without value");
                 continue;
             }
 
             String variableKey = argumentMatcher.group("key");
             String variableValue = argumentMatcher.group("value");
-
-            Stepper.callbacks.printOutput("[MessageProcessor] got argument: " + variableKey + "=" + variableValue);
 
             arguments.put(variableKey, variableValue);
         }
