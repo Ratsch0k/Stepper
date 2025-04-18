@@ -162,7 +162,23 @@ public class AboutPanel extends JPanel {
                     "as usual, and add the headers ";
             String stepExecutionUsageItalics = "\"X-Stepper-Execute-Before: SEQUENCENAME\", \"X-Stepper-Execute-After: SEQUENCENAME\"";
             String stepExecutionUsageB = " to the request respectively. This will cause the sequence to be executed and variables " +
-                    "to be updated every time the request is sent.";
+                    "to be updated every time the request is sent.\n\n";
+
+            String sequenceInputHeader = "Passing Arguments to Sequences:\n";
+            String sequenceInputUsageA = "It is possible to pass arguments to sequences. " +
+                    "This is helpful if the sequences before or after the execution of a request must contain some dynamic value that must match with the request itself. "+
+                    "In combination with other tools such as intruder or active scanner, this also allows testing more complex sequences and pass the tool's payload into the sequences.\n" +
+                    "Before you can pass arguments, you must first define a global variable for a sequence with your desired name. " +
+                    "The arguments are based on the global variables of a sequence and use the same names. If an argument is passed to the sequence, the value will override the global's value in the sequence. "+
+                    "There are two ways you can pass an argument.\n\n" +
+                    "1. Option: Execute before and after header:\n" +
+                    "You can pass the arguments in the stepper headers as shown below. You can pass a single argument or multiple arguments at once. The only limitation of this approach is that you can't pass the character \";\" as a value as it is used as the delimiter.\n";
+            String sequenceInputUsageBItalics = "\"X-Stepper-Execute-Before: SEQUENCENAME: arg1=value1\" or \"X-Stepper-Execute-After: SEQUENCENAME: arg1=value1; arg2=value2\"\n\n";
+            String sequenceInputUsageC = "2. Option: Argument header:\n" +
+                    "If there is the need to pass a semicolon or you are using payloads from another tool where the semicolon might be used, you can use a dedicated header to pass the argument." +
+                    "This header allows you to use any value as an argument but you can only set one argument per header. If you want to pass multiple arguments you have to use multiple headers." +
+                    "You can use this option as shown below:\n";
+            String sequenceInputUsageDItalics = "\"X-Stepper-Argument: var=value\"";
 
 //            aboutContent.getDocument().insertString(aboutContent.getText().length(), intro, italics);
 //            aboutContent.getDocument().insertString(aboutContent.getText().length(), instructionsHeader, bold);
@@ -178,13 +194,24 @@ public class AboutPanel extends JPanel {
             
             //Doing this an odd way since insertString seems to cause errors on windows!
             int offset = 0;
-            String[] sections = new String[]{intro, instructionsHeader, instructions, variableHelpHeader, variableHelp
-                    , regularExpressionHeader, regularExpressionHelp, regularExpressionExampleHeader
-                    , regularExpressionExample, variableUsageHeader, variableInsertion, variableExampleSequenceTitle, variableExampleSequenceUsage
-                    , variableExampleToolTitle, variableExampleToolUsage, stepExecutionHeader, stepExecutionUsageA,
-                    stepExecutionUsageItalics, stepExecutionUsageB};
-            Style[] styles = new Style[]{italics, bold, null, bold, null, bold, null, bold,
-                                            null, bold, null, null, italics, null, italics, bold, null, italics, null};
+            String[] sections = new String[]{
+                intro,
+                instructionsHeader, instructions,
+                variableHelpHeader, variableHelp,
+                regularExpressionHeader, regularExpressionHelp,
+                regularExpressionExampleHeader, regularExpressionExample,
+                variableUsageHeader, variableInsertion, variableExampleSequenceTitle, variableExampleSequenceUsage, variableExampleToolTitle, variableExampleToolUsage,
+                stepExecutionHeader, stepExecutionUsageA, stepExecutionUsageItalics, stepExecutionUsageB,
+                sequenceInputHeader, sequenceInputUsageA, sequenceInputUsageBItalics, sequenceInputUsageC, sequenceInputUsageDItalics};
+            Style[] styles = new Style[]{
+                italics,
+                bold, null,
+                bold, null,
+                bold, null,
+                bold, null,
+                bold, null, null, italics, null, italics,
+                bold, null, italics, null,
+                bold, null, italics, null, italics};
             String content = String.join("", sections);
             aboutContent.setText(content);
             for (int i = 0; i < sections.length; i++) {
