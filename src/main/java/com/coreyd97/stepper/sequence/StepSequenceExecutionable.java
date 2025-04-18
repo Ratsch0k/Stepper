@@ -50,8 +50,10 @@ public class StepSequenceExecutionable {
             executionableSteps.add(new StepExecutionable(step, this.updateState));
         }
 
-        for (SequenceExecutionListener listener : this.state.getExecutionListeners()) {
-            listener.beforeSequenceStateStart(this.state.steps);
+        if (this.updateState) {
+            for (SequenceExecutionListener listener : this.state.getExecutionListeners()) {
+                listener.beforeSequenceStateStart(this.state.steps);
+            }
         }
 
         for (StepExecutionable executionable : executionableSteps) {
@@ -69,13 +71,18 @@ public class StepSequenceExecutionable {
                 executionVariables.put(variable.getIdentifier(), variable);
             }
 
-            for (SequenceExecutionListener listener : this.state.getExecutionListeners()) {
-                listener.sequenceStepExecuted(result.getInfo());
+            if (this.updateState) {
+                for (SequenceExecutionListener listener : this.state.getExecutionListeners()) {
+                    listener.sequenceStepExecuted(result.getInfo());
+                }
             }
         }
 
-        for (SequenceExecutionListener listener : this.state.getExecutionListeners()) {
-            listener.afterSequenceEnd(true);
+
+        if (this.updateState) {
+            for (SequenceExecutionListener listener : this.state.getExecutionListeners()) {
+                listener.afterSequenceEnd(true);
+            }
         }
 
         return executionVariables;
