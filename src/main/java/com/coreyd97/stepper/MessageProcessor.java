@@ -26,7 +26,7 @@ public class MessageProcessor implements IHttpListener {
     private final Preferences preferences;
     public static final String EXECUTE_BEFORE_HEADER = "X-Stepper-Execute-Before";
     public static final String EXECUTE_AFTER_HEADER = "X-Stepper-Execute-After";
-    public static final String EXECUTE_VAR_HEADER = "X-Stepper-Var";
+    public static final String EXECUTE_VAR_HEADER = "X-Stepper-Argument";
     public static final String EXECUTE_BEFORE_REGEX = EXECUTE_BEFORE_HEADER + ":(.*)";
     public static final String EXECUTE_AFTER_REGEX = EXECUTE_AFTER_HEADER+":(.*)";
     public static final String EXECUTE_VAR_REGEX = EXECUTE_VAR_HEADER + ":(.*)";
