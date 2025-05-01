@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     compileOnly 'net.portswigger.burp.extender:burp-extender-api:2.3'
+    compileOnly 'net.portswigger.burp.extensions:montoya-api:2025.4'
     implementation 'com.github.CoreyD97:BurpExtenderUtilities:c03c1a2a1'
     compileOnly 'com.formdev:flatlaf:3.0'
     testRuntimeOnly files('/home/corey/BurpSuitePro/burpsuite_pro.jar')
@@ -19,6 +20,7 @@ dependencies {
 jar{
     archivesBaseName = project.name
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    destinationDirectory.set(file("$rootDir/releases"))
 
     from {
         (configurations.runtimeClasspath).collect { it.isDirectory() ? it : zipTree(it) }
@@ -34,6 +36,3 @@ configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 
-tasks.withType(Jar) {
-    destinationDir = file("$rootDir/releases")
-}
