@@ -1,6 +1,8 @@
 package com.coreyd97.stepper.step;
 
 import burp.*;
+import burp.api.montoya.http.HttpService;
+
 import com.coreyd97.stepper.Globals;
 import com.coreyd97.stepper.MessageProcessor;
 import com.coreyd97.stepper.Stepper;
@@ -247,6 +249,13 @@ public class Step implements IMessageEditorController {
         this.hostname = httpService.getHost();
         this.port = httpService.getPort();
         this.isSSL = httpService.getProtocol().equalsIgnoreCase("https");
+        tryUpdateHttpService();
+    }
+
+    public void setHttpService(HttpService httpService) {
+        this.hostname = httpService.host();
+        this.port = httpService.port();
+        this.isSSL = httpService.secure();
         tryUpdateHttpService();
     }
 

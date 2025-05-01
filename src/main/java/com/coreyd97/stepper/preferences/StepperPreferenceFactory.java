@@ -63,6 +63,9 @@ public class StepperPreferenceFactory extends PreferenceFactory {
         prefs.registerSetting(Globals.PREF_VARS_IN_SPIDER, Boolean.class, true, Preferences.Visibility.GLOBAL);
         prefs.registerSetting(Globals.PREF_VARS_IN_SCANNER, Boolean.class, true, Preferences.Visibility.GLOBAL);
         prefs.registerSetting(Globals.PREF_UPDATE_REQUEST_LENGTH, Boolean.class, true, Preferences.Visibility.GLOBAL);
-        prefs.registerSetting(Globals.PREF_ENABLE_SHORTCUT, Boolean.class, true, Preferences.Visibility.GLOBAL);
+        prefs.registerSetting(Globals.HOTKEY_EXECUTE_SEQUENCE, String.class, "Alt+J", Preferences.Visibility.GLOBAL);
+        prefs.registerSetting(Globals.HOTKEY_EXECUTE_STEP, String.class, "Alt+Shift+J", Preferences.Visibility.GLOBAL);
+        prefs.registerSetting(Globals.HOTKEY_SEND_TO_STEPPER, String.class, "Ctrl+J", Preferences.Visibility.GLOBAL);
+
     }
 }

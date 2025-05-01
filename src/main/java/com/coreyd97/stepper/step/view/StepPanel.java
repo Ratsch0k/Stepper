@@ -3,9 +3,12 @@ package com.coreyd97.stepper.step.view;
 import burp.IMessageEditor;
 import com.coreyd97.BurpExtenderUtilities.Alignment;
 import com.coreyd97.BurpExtenderUtilities.PanelBuilder;
+import com.coreyd97.stepper.Globals;
 import com.coreyd97.stepper.Stepper;
+import com.coreyd97.stepper.exception.HotKeyAlreadyRegisteredException;
 import com.coreyd97.stepper.exception.SequenceCancelledException;
 import com.coreyd97.stepper.exception.SequenceExecutionException;
+import com.coreyd97.stepper.hotkey.HotKeyManager;
 import com.coreyd97.stepper.sequence.view.SequenceContainer;
 import com.coreyd97.stepper.step.Step;
 import com.coreyd97.stepper.step.StepExecutionInfo;
@@ -16,14 +19,10 @@ import com.coreyd97.stepper.variable.listener.StepVariableListener;
 import com.formdev.flatlaf.FlatLaf;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.net.URL;
 
 public class StepPanel extends JPanel implements StepVariableListener {
 
@@ -40,6 +39,7 @@ public class StepPanel extends JPanel implements StepVariableListener {
 
     public StepPanel(SequenceContainer sequenceContainer, Step step){
         super(new BorderLayout());
+
         this.sequenceContainer = sequenceContainer;
         this.step = step;
 
@@ -124,6 +124,26 @@ public class StepPanel extends JPanel implements StepVariableListener {
             }).start();
         });
 
+        HotKeyManager hotKeyManager = HotKeyManager.getInstance();
+        AbstractAction executeStepAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                //Execute sequence
+                new Thread(() -> {
+                        try {
+                            step.executeStep();
+                        } catch (Exception e) {
+                            JOptionPane.showMessageDialog(StepPanel.this, e.getMessage(), "Step Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                }).start();
+            }
+        };
+        try {
+            hotKeyManager.registerMultiComponentHotKey(Globals.HOTKEY_EXECUTE_STEP, executeStepAction, this);
+        } catch (HotKeyAlreadyRegisteredException e) {
+            Stepper.callbacks.printError("Could not register hotkey to execute a step: " + e.getMessage());
+        }
+
         JButton editTargetButton = new JButton("Edit");
 
         Runnable setEditButtonIcon = () -> {
@@ -176,7 +196,6 @@ public class StepPanel extends JPanel implements StepVariableListener {
     }
 
     private void showHttpDialog(){
-
         JTextField httpAddressField = new JTextField();
         httpAddressField.setText(step.getHostname());
         JSpinner httpPortSpinner = new JSpinner(new SpinnerNumberModel(step.getPort().intValue(),1,65535,1));

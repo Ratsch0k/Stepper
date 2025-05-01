@@ -1,6 +1,8 @@
 package com.coreyd97.stepper.sequence;
 
 import burp.IHttpRequestResponse;
+import burp.api.montoya.http.message.HttpRequestResponse;
+
 import com.coreyd97.stepper.Stepper;
 import com.coreyd97.stepper.exception.SequenceCancelledException;
 import com.coreyd97.stepper.exception.SequenceExecutionException;
@@ -124,6 +126,16 @@ public class StepSequence
         step.setRequestBody(requestResponse.getRequest());
         step.setResponseBody(requestResponse.getResponse());
         step.setHttpService(requestResponse.getHttpService());
+        addStep(step);
+    }
+
+    public void addStep(HttpRequestResponse requestResponse) {
+        Step step = new Step(this);
+        step.setRequestBody(requestResponse.request().toByteArray().getBytes());
+        if (requestResponse.hasResponse()) {
+            step.setResponseBody(requestResponse.response().toByteArray().getBytes());
+        }
+        step.setHttpService(requestResponse.httpService());
         addStep(step);
     }
 

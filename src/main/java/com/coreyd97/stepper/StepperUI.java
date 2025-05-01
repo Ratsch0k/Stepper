@@ -1,16 +1,23 @@
 package com.coreyd97.stepper;
 
 import burp.ITab;
+import burp.api.montoya.ui.contextmenu.MessageEditorHttpRequestResponse;
+import burp.api.montoya.ui.hotkey.HotKeyEvent;
+import burp.api.montoya.ui.hotkey.HotKeyHandler;
+
 import com.coreyd97.BurpExtenderUtilities.CustomTabComponent;
 import com.coreyd97.BurpExtenderUtilities.PopOutPanel;
 import com.coreyd97.stepper.sequencemanager.listener.StepSequenceListener;
 import com.coreyd97.stepper.about.view.AboutPanel;
+import com.coreyd97.stepper.exception.HotKeyAlreadyRegisteredException;
+import com.coreyd97.stepper.hotkey.HotKeyManager;
 import com.coreyd97.stepper.preferences.view.OptionsPanel;
 import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.sequence.view.StepSequenceTab;
 import com.coreyd97.stepper.sequencemanager.SequenceManager;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -67,6 +74,49 @@ public class StepperUI implements ITab {
                 removeTabForSequence(sequence);
             }
         });
+
+        // Register the editor hotkey
+        HotKeyManager hotKeyManager = HotKeyManager.getInstance();
+
+        try {
+            hotKeyManager.registerEditorHotKey("SendToStepper", new HotKeyHandler() {
+                @Override
+                public void handle(HotKeyEvent event) {
+                    if (event.messageEditorRequestResponse().isEmpty()) {
+                        return;
+                    }
+
+                    MessageEditorHttpRequestResponse editor = event.messageEditorRequestResponse().get();
+
+                    try {
+                        // Prompt the user to select or create a sequence to send this request to
+                        SendToStepperDialog dialog = new SendToStepperDialog(Stepper.montoyaApi.userInterface().swingUtils().suiteFrame());
+                        SendToStepperDialog.Result result = dialog.prompt();
+
+                        // The dialog can have different return types based on the user's input.
+                        // Handle these cases accordingly
+                        if (result instanceof SendToStepperDialog.SendResult) {
+                            SendToStepperDialog.SendResult sendResult = (SendToStepperDialog.SendResult) result;
+
+                            sendResult.getSequence().addStep(editor.requestResponse());
+                        } else if (result instanceof SendToStepperDialog.CreateNewResult) {
+                            SendToStepperDialog.CreateNewResult createNewResult = (SendToStepperDialog.CreateNewResult) result;
+
+                            SequenceManager manager = Stepper.getSequenceManager();
+                            StepSequence newSequence = new StepSequence(createNewResult.getName());
+                            newSequence.addStep(editor.requestResponse());
+                            manager.addStepSequence(newSequence);
+                        }
+
+                        event.inputEvent().getComponent().requestFocus();
+                    } catch (Exception e) {
+                        Stepper.callbacks.printError("Error: " + e.getMessage());
+                    }
+                }
+            });
+        } catch (HotKeyAlreadyRegisteredException e) {
+            Stepper.callbacks.printError("SendToStepper hotkey already registered");
+        }
     }
 
     private void addTabForSequence(StepSequence sequence){

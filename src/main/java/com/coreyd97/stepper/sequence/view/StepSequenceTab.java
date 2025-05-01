@@ -2,6 +2,7 @@ package com.coreyd97.stepper.sequence.view;
 
 import com.coreyd97.stepper.Globals;
 import com.coreyd97.stepper.Stepper;
+import com.coreyd97.stepper.hotkey.HotKeyManager;
 import com.coreyd97.stepper.sequence.StepSequence;
 import com.coreyd97.stepper.step.view.StepPanel;
 
@@ -23,20 +24,27 @@ public class StepSequenceTab extends JPanel {
         add(this.stepsContainer, BorderLayout.CENTER);
         add(this.controlPanel, BorderLayout.SOUTH);
 
-        ActionMap actionMap = getActionMap();
-        actionMap.put("ExecuteSequence", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                //Execute sequence
-                if(Stepper.getPreferences().getSetting(Globals.PREF_ENABLE_SHORTCUT)){
-                    SwingUtilities.invokeLater(stepSequence::executeAsync);
-                }
-            }
-        });
-
-        InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_G, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK), "ExecuteSequence");
+        this.registerExecuteStepKeybind();
     }
+
+    private void registerExecuteStepKeybind() {
+        HotKeyManager manager = HotKeyManager.getInstance();
+        AbstractAction action = new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                SwingUtilities.invokeLater(stepSequence::executeAsync);
+            }
+            
+        };
+
+        try {
+            manager.registerMultiComponentHotKey(Globals.HOTKEY_EXECUTE_SEQUENCE, action, this);
+        } catch (Exception e) {
+            Stepper.callbacks.printError("Could not register hotkey to execute sequence");
+        }
+    }
+
 
     public SequenceContainer getStepsContainer() {
         return stepsContainer;
