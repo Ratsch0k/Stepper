@@ -10,6 +10,7 @@ import com.coreyd97.stepper.sequence.StepSequenceState;
 import burp.IHttpService;
 import burp.IMessageEditor;
 import burp.IMessageEditorController;
+import burp.api.montoya.http.HttpService;
 
 public class StepState implements IMessageEditorController {
     private final StepStateVariableManager variableManager;
@@ -58,6 +59,13 @@ public class StepState implements IMessageEditorController {
             this.responseEditor.setMessage(responseBody, false);
         }
 
+    }
+
+    public void setHttpService(HttpService httpService) {
+        this.hostname = httpService.host();
+        this.port = httpService.port();
+        this.isSSL = httpService.secure();
+        tryUpdateHttpService();
     }
 
     public void setSequenceState(StepSequenceState sequence) {

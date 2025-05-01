@@ -1,8 +1,8 @@
 package com.coreyd97.stepper.sequence;
 
 import burp.IHttpRequestResponse;
+import burp.api.montoya.http.message.HttpRequestResponse;
 
-import com.coreyd97.stepper.Stepper;
 import com.coreyd97.stepper.sequence.listener.SequenceExecutionListener;
 import com.coreyd97.stepper.sequence.listener.SequenceStateListener;
 import com.coreyd97.stepper.step.StepState;
@@ -57,6 +57,16 @@ public class StepSequenceState {
         step.setRequestBody(requestResponse.getRequest());
         step.setResponseBody(requestResponse.getResponse());
         step.setHttpService(requestResponse.getHttpService());
+        addStep(step);
+    }
+
+        public void addStep(HttpRequestResponse requestResponse) {
+        StepState step = new StepState(this);
+        step.setRequestBody(requestResponse.request().toByteArray().getBytes());
+        if (requestResponse.hasResponse()) {
+            step.setResponseBody(requestResponse.response().toByteArray().getBytes());
+        }
+        step.setHttpService(requestResponse.httpService());
         addStep(step);
     }
 

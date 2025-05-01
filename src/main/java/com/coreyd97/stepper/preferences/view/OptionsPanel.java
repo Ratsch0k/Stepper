@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -32,11 +33,25 @@ public class OptionsPanel extends JPanel {
         buildPanel();
     }
 
+    private JComponent buildHotKeyField(Preferences preference) {
+        HotKeyTable.Row[] data = {
+            new HotKeyTable.Row("Execute current sequence", Globals.HOTKEY_EXECUTE_SEQUENCE),
+            new HotKeyTable.Row("Execute current step", Globals.HOTKEY_EXECUTE_STEP),
+            new HotKeyTable.Row("Send to Stepper", Globals.HOTKEY_SEND_TO_STEPPER),
+        };
+
+        HotKeyTable table = new HotKeyTable(preference, data);
+
+        return table;
+    }
+
     private void buildPanel() {
         ComponentGroup configGroup = new ComponentGroup(ComponentGroup.Orientation.VERTICAL, "Config");
         configGroup.addPreferenceComponent(preferences, Globals.PREF_UPDATE_REQUEST_LENGTH, "Automatically update the Content-Length header");
-        configGroup.addPreferenceComponent(preferences, Globals.PREF_ENABLE_SHORTCUT, "Enable Shortcut (Ctrl+Shift+G)");
         configGroup.addPreferenceComponent(preferences, Globals.PREF_ENABLE_UNPROCESSABLE_WARNING, "Enable warning if non UTF-8 character in request");
+
+        ComponentGroup hotKeyGroup = new ComponentGroup(ComponentGroup.Orientation.VERTICAL, "Keyboard Shortcuts");
+        hotKeyGroup.add(buildHotKeyField(preferences));
 
         ComponentGroup toolEnabledGroup = new ComponentGroup(ComponentGroup.Orientation.VERTICAL, "Allow Variables Usage");
         JCheckBox allToolsCheckbox = toolEnabledGroup.addPreferenceComponent(preferences, Globals.PREF_VARS_IN_ALL_TOOLS, "All Tools");
@@ -162,8 +177,8 @@ public class OptionsPanel extends JPanel {
         PanelBuilder panelBuilder = new PanelBuilder();
         panelBuilder.setComponentGrid(new JComponent[][]{new JComponent[]{toolEnabledGroup, importGroup},
                                                                 new JComponent[]{toolEnabledGroup, exportGroup},
-                                                                new JComponent[]{configGroup, configGroup}});
-                                                                
+                                                                new JComponent[]{configGroup, configGroup},
+                                                                new JComponent[]{hotKeyGroup, hotKeyGroup}});
         panelBuilder.setAlignment(Alignment.TOPMIDDLE);
         this.add(panelBuilder.build());
     }

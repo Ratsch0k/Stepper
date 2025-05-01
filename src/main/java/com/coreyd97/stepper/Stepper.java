@@ -2,6 +2,9 @@ package com.coreyd97.stepper;
 
 import burp.IBurpExtender;
 import burp.IBurpExtenderCallbacks;
+import burp.api.montoya.BurpExtension;
+import burp.api.montoya.MontoyaApi;
+
 import com.coreyd97.BurpExtenderUtilities.DefaultGsonProvider;
 import com.coreyd97.BurpExtenderUtilities.IGsonProvider;
 import com.coreyd97.BurpExtenderUtilities.Preferences;
@@ -11,7 +14,7 @@ import com.coreyd97.stepper.util.variablereplacementstab.VariableReplacementsTab
 
 import javax.swing.*;
 
-public class Stepper implements IBurpExtender {
+public class Stepper implements IBurpExtender, BurpExtension {
 
     public static Stepper instance;
     private static StepperUI ui;
@@ -19,6 +22,7 @@ public class Stepper implements IBurpExtender {
     public static IGsonProvider gsonProvider = new DefaultGsonProvider();
     private static Preferences preferences;
     private static SequenceManager sequenceManager;
+    public static MontoyaApi montoyaApi;
 
     private StateManager stateManager;
     private MessageProcessor messageProcessor;
@@ -49,7 +53,7 @@ public class Stepper implements IBurpExtender {
         Stepper.callbacks = callbacks;
         Stepper.preferences = new StepperPreferenceFactory(Globals.EXTENSION_NAME, gsonProvider, callbacks).buildPreferences();
 
-        this.sequenceManager = new SequenceManager();
+        Stepper.sequenceManager = new SequenceManager();
         this.stateManager = new StateManager(sequenceManager, preferences);
         this.stateManager.loadSavedSequences();
         this.messageProcessor = new MessageProcessor(sequenceManager, preferences);
@@ -60,12 +64,33 @@ public class Stepper implements IBurpExtender {
         Stepper.callbacks.registerHttpListener(messageProcessor);
         Stepper.callbacks.registerExtensionStateListener(stateManager);
 
-
         SwingUtilities.invokeLater(() -> {
-            ui = new StepperUI(sequenceManager);
-            Stepper.callbacks.addSuiteTab(Stepper.ui);
+            try {
+                ui = new StepperUI(sequenceManager);
+                Stepper.callbacks.addSuiteTab(Stepper.ui);
+            } catch (Exception e) {
+                Stepper.callbacks.printError("Error while initiating StepperUI: " + e.getMessage());
+                for (StackTraceElement element : e.getStackTrace()) {
+                    Stepper.callbacks.printError("\t" + element.toString());
+                }
+            }
+
         });
 
+    }
+
+    /**
+     * Initialize extension with Montoya API.
+     * 
+     * Some features require the Montoya API.
+     * However, the extension does not yet fully support the Montoya API
+     * and most features rely on the legacy API.
+     * 
+     * Thus, the extension is registered with both the legacy and the Montoya API.
+     */
+    @Override
+    public void initialize(MontoyaApi api) {
+        Stepper.montoyaApi = api;
     }
 
     public static Preferences getPreferences() {

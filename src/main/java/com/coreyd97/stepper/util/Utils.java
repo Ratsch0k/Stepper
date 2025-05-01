@@ -1,6 +1,7 @@
 package com.coreyd97.stepper.util;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.net.URL;
@@ -20,5 +21,22 @@ public class Utils {
             return new ImageIcon(bufferedImage);
         }
         return null;
+    }
+
+    /**
+     * Converts a hotkey in the style of burp into the syntax used by java swing's key stroke.
+     * 
+     * For example, the hotkey {@code Ctrl+Alt+N}
+     * is converted into the string {@code control alt N}
+     * The result of this function can be used to create valid {@code KeyStroke} instance.
+     * @param burpHotKey A string representing a hotkey as used by Burp
+     * @return The same hotkey but in Java Swing's representation
+     */
+    public static String burpHotKeyToSwing(String burpHotKey) {
+        return burpHotKey
+            .replace("+", " ") // Expand whitespace
+            .replace("Ctrl", "control") // Expand control modifier
+            .replace("Shift", "shift") // Expand shift modifier
+            .replace("Alt", "alt"); // Expand alt modifier
     }
 }
